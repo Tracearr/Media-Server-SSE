@@ -6,7 +6,7 @@
     "overview": "Streams playback start, progress, pause, stop, and session connect/disconnect events as Server-Sent Events. Built for the Tracearr scrobbler. Works with any SSE client.",
     "owner": "Connor Gallopo - Tracearr",
     "category": "General",
-    "imageUrl": "https://raw.githubusercontent.com/Tracearr/mediaserver-sse/main/assets/icon.png",
+    "imageUrl": "https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/icon.png",
     "versions": []
   }
 ]

@@ -17,11 +17,11 @@ from xml.etree import ElementTree as ET
 
 
 JF_URL_TEMPLATE = (
-    "https://github.com/Tracearr/mediaserver-sse/releases/download/"
+    "https://github.com/Tracearr/Media-Server-SSE/releases/download/"
     "v{v}/Tracearr.Sse.Jellyfin_{v}.zip"
 )
 EMBY_URL_TEMPLATE = (
-    "https://github.com/Tracearr/mediaserver-sse/releases/download/"
+    "https://github.com/Tracearr/Media-Server-SSE/releases/download/"
     "v{v}/Tracearr.Sse.Emby_{v}.zip"
 )
 TARGET_ABI = "10.11.0.0"

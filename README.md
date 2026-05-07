@@ -13,23 +13,23 @@ Neither Jellyfin nor Emby has a built-in way to subscribe to playback events ove
 1. Open Jellyfin → **Dashboard → Plugins → Repositories**.
 2. Add a repository:
    - **Name:** `Tracearr`
-   - **URL:** `https://raw.githubusercontent.com/Tracearr/mediaserver-sse/main/manifest.json`
+   - **URL:** `https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/manifest.json`
 3. Open the **Catalog**, find **Tracearr SSE**, install.
 4. Restart Jellyfin.
 
-Manual install (if you don't want to add the repository): download `Tracearr.Sse.Jellyfin_<version>.zip` from [Releases](https://github.com/Tracearr/mediaserver-sse/releases), extract `Jellyfin.Plugin.Sse.dll` and `MediaServer.Sse.Core.dll` into your Jellyfin data directory at `plugins/Tracearr SSE/`. Restart.
+Manual install (if you don't want to add the repository): download `Tracearr.Sse.Jellyfin_<version>.zip` from [Releases](https://github.com/Tracearr/Media-Server-SSE/releases), extract `Jellyfin.Plugin.Sse.dll` and `MediaServer.Sse.Core.dll` into your Jellyfin data directory at `plugins/Tracearr SSE/`. Restart.
 
 ### Emby
 
 1. Open Emby → **Settings → Advanced → Plugins**.
 2. Set the **Catalog URL** to:
    ```
-   https://raw.githubusercontent.com/Tracearr/mediaserver-sse/main/emby-packages.xml
+   https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/emby-packages.xml
    ```
 3. Find **Tracearr SSE** in the catalog, install.
 4. Restart Emby.
 
-Manual install: download `Tracearr.Sse.Emby_<version>.zip` from [Releases](https://github.com/Tracearr/mediaserver-sse/releases), extract `Emby.Plugin.Sse.dll` and `MediaServer.Sse.Core.dll` into Emby's `programdata/plugins/`. Restart.
+Manual install: download `Tracearr.Sse.Emby_<version>.zip` from [Releases](https://github.com/Tracearr/Media-Server-SSE/releases), extract `Emby.Plugin.Sse.dll` and `MediaServer.Sse.Core.dll` into Emby's `programdata/plugins/`. Restart.
 
 ## Usage
 
@@ -99,8 +99,8 @@ gh attestation verify Tracearr.Sse.Jellyfin_0.1.0.zip --owner Tracearr
 Requires [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0).
 
 ```bash
-git clone https://github.com/Tracearr/mediaserver-sse.git
-cd mediaserver-sse
+git clone https://github.com/Tracearr/Media-Server-SSE.git
+cd Media-Server-SSE
 
 # Jellyfin
 dotnet publish Jellyfin.Plugin.Sse --configuration Release --output bin/jellyfin

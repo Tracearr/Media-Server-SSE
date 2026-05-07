@@ -23,7 +23,7 @@ cat > manifest.json <<'EOF'
     "overview": "Streams playback start, progress, pause, stop, and session connect/disconnect events as Server-Sent Events. Built for the Tracearr scrobbler. Works with any SSE client.",
     "owner": "Connor Gallopo - Tracearr",
     "category": "General",
-    "imageUrl": "https://raw.githubusercontent.com/Tracearr/mediaserver-sse/main/assets/icon.png",
+    "imageUrl": "https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/icon.png",
     "versions": []
   }
 ]
@@ -40,7 +40,7 @@ cat > emby-packages.xml <<'EOF'
     <description>Server-Sent Events endpoint for real-time playback and session notifications.</description>
     <overview>Streams playback start, progress, pause, stop, and session connect/disconnect events as Server-Sent Events. Built for the Tracearr scrobbler. Works with any SSE client.</overview>
     <category>General</category>
-    <thumbImage>https://raw.githubusercontent.com/Tracearr/mediaserver-sse/main/assets/icon.png</thumbImage>
+    <thumbImage>https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/icon.png</thumbImage>
     <targetSystem>Server</targetSystem>
     <versions></versions>
   </PackageInfo>
@@ -69,7 +69,7 @@ JF_CS=$(jq -r '.[0].versions[0].checksum' manifest.json)
 [ "$JF_CS" = "abc123" ] || { echo "FAIL: jellyfin checksum = $JF_CS, expected abc123"; exit 1; }
 
 JF_SRC=$(jq -r '.[0].versions[0].sourceUrl' manifest.json)
-[ "$JF_SRC" = "https://github.com/Tracearr/mediaserver-sse/releases/download/v0.1.0/Tracearr.Sse.Jellyfin_0.1.0.zip" ] || { echo "FAIL: jellyfin sourceUrl wrong: $JF_SRC"; exit 1; }
+[ "$JF_SRC" = "https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.1.0/Tracearr.Sse.Jellyfin_0.1.0.zip" ] || { echo "FAIL: jellyfin sourceUrl wrong: $JF_SRC"; exit 1; }
 
 # Assert emby-packages.xml has one version, versionStr=0.1.0.0, checksum=def456
 EMBY_COUNT=$(emby_count)
