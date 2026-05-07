@@ -21,15 +21,13 @@ Manual install (if you don't want to add the repository): download `Tracearr.Sse
 
 ### Emby
 
-1. Open Emby → **Settings → Advanced → Plugins**.
-2. Set the **Catalog URL** to:
-   ```
-   https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/emby-packages.xml
-   ```
-3. Find **Tracearr SSE** in the catalog, install.
-4. Restart Emby.
+Emby has no equivalent of Jellyfin's user-pasteable plugin repository URL — install is manual.
 
-Manual install: download `Tracearr.Sse.Emby_<version>.zip` from [Releases](https://github.com/Tracearr/Media-Server-SSE/releases), extract `Emby.Plugin.Sse.dll` into Emby's `programdata/plugins/`. Restart.
+1. Download `Tracearr.Sse.Emby_<version>.zip` from [Releases](https://github.com/Tracearr/Media-Server-SSE/releases).
+2. Extract `Emby.Plugin.Sse.dll` into Emby's `programdata/plugins/` directory.
+3. Restart Emby.
+
+Updates: repeat the same steps with the new release zip.
 
 ## Usage
 
