@@ -1,0 +1,12 @@
+[
+  {
+    "guid": "b4a6d7e2-8f3c-4a1e-9d5b-2c7f0e8a1b3d",
+    "name": "Tracearr SSE",
+    "description": "Server-Sent Events endpoint for real-time playback and session notifications.",
+    "overview": "Streams playback start, progress, pause, stop, and session connect/disconnect events as Server-Sent Events. Built for the Tracearr scrobbler. Works with any SSE client.",
+    "owner": "Connor Gallopo - Tracearr",
+    "category": "General",
+    "imageUrl": "https://raw.githubusercontent.com/Tracearr/mediaserver-sse/main/assets/icon.png",
+    "versions": []
+  }
+]
