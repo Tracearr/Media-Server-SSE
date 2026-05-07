@@ -57,7 +57,7 @@ jobs:
           EMBY_ZIP="Tracearr.Sse.Emby_${REL}.zip"
 
           (cd out/jellyfin && zip "../../${JF_ZIP}" Jellyfin.Plugin.Sse.dll MediaServer.Sse.Core.dll)
-          (cd out/emby && zip "../../${EMBY_ZIP}" Emby.Plugin.Sse.dll MediaServer.Sse.Core.dll)
+          (cd out/emby && zip "../../${EMBY_ZIP}" Emby.Plugin.Sse.dll)
 
           JF_MD5=$(md5sum "${JF_ZIP}" | awk '{print $1}')
           EMBY_MD5=$(md5sum "${EMBY_ZIP}" | awk '{print $1}')

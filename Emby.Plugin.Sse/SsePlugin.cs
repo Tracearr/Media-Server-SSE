@@ -1,12 +1,14 @@
 using System;
+using System.IO;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
+using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 
 namespace Emby.Plugin.Sse
 {
-    public class SsePlugin : BasePlugin<BasePluginConfiguration>
+    public class SsePlugin : BasePlugin<BasePluginConfiguration>, IHasThumbImage
     {
         public SsePlugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
@@ -18,5 +20,9 @@ namespace Emby.Plugin.Sse
         public override string Name => "Tracearr SSE";
 
         public override string Description => "Server-Sent Events endpoint for real-time playback and session notifications.";
+
+        public Stream GetThumbImage() => GetType().Assembly.GetManifestResourceStream("icon.png")!;
+
+        public ImageFormat ThumbImageFormat => ImageFormat.Png;
     }
 }

@@ -29,7 +29,7 @@ Manual install (if you don't want to add the repository): download `Tracearr.Sse
 3. Find **Tracearr SSE** in the catalog, install.
 4. Restart Emby.
 
-Manual install: download `Tracearr.Sse.Emby_<version>.zip` from [Releases](https://github.com/Tracearr/Media-Server-SSE/releases), extract `Emby.Plugin.Sse.dll` and `MediaServer.Sse.Core.dll` into Emby's `programdata/plugins/`. Restart.
+Manual install: download `Tracearr.Sse.Emby_<version>.zip` from [Releases](https://github.com/Tracearr/Media-Server-SSE/releases), extract `Emby.Plugin.Sse.dll` into Emby's `programdata/plugins/`. Restart.
 
 ## Usage
 
@@ -116,11 +116,11 @@ dotnet test
 
 ## Architecture
 
-Three assemblies:
+Three projects, two distribution shapes:
 
-- `MediaServer.Sse.Core` — platform-agnostic event model and broadcaster. Multi-targets `net9.0;netstandard2.0` so both plugins consume the same library. Uses `System.Threading.Channels` for fan-out.
-- `Jellyfin.Plugin.Sse` — five `IEventConsumer<T>` implementations + an ASP.NET Core controller for the SSE endpoint.
-- `Emby.Plugin.Sse` — single `IServerEntryPoint` that subscribes to `ISessionManager` events + an `IService` + `IAsyncStreamWriter` endpoint.
+- `MediaServer.Sse.Core` — platform-agnostic event model and broadcaster. Uses `System.Threading.Channels` for fan-out.
+- `Jellyfin.Plugin.Sse` — five `IEventConsumer<T>` implementations + an ASP.NET Core controller for the SSE endpoint. Ships as `Jellyfin.Plugin.Sse.dll` + `MediaServer.Sse.Core.dll`.
+- `Emby.Plugin.Sse` — single `IServerEntryPoint` that subscribes to `ISessionManager` events + an `IService` + `IAsyncStreamWriter` endpoint. Ships as a single `Emby.Plugin.Sse.dll`; Core sources are inlined at compile time because Emby's plugin loader only resolves a single DLL per plugin.
 
 ## License
 

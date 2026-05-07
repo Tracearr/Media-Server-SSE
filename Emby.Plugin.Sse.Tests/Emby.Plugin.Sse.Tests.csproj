@@ -15,8 +15,9 @@
     <PackageReference Include="Moq" Version="4.20.72" />
   </ItemGroup>
 
+  <!-- Emby.Plugin.Sse inlines MediaServer.Sse.Core sources (single-DLL plugin), so we
+       reference only the Emby plugin to avoid duplicate type definitions. -->
   <ItemGroup>
-    <ProjectReference Include="..\MediaServer.Sse.Core\MediaServer.Sse.Core.csproj" />
     <ProjectReference Include="..\Emby.Plugin.Sse\Emby.Plugin.Sse.csproj" />
   </ItemGroup>
 </Project>
