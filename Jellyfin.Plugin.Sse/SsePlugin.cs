@@ -10,7 +10,7 @@ public class SsePlugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSer
 {
     public override Guid Id => new("B4A6D7E2-8F3C-4A1E-9D5B-2C7F0E8A1B3D");
 
-    public override string Name => "SSE";
+    public override string Name => "Tracearr SSE";
 
-    public override string Description => "Server-Sent Events for real-time playback and session notifications.";
+    public override string Description => "Server-Sent Events endpoint for real-time playback and session notifications.";
 }

@@ -15,8 +15,8 @@ namespace Emby.Plugin.Sse
 
         public override Guid Id => new Guid("A3D8F1E6-2B7C-4E9A-8F5D-1C6B0A3E7F92");
 
-        public override string Name => "SSE";
+        public override string Name => "Tracearr SSE";
 
-        public override string Description => "Server-Sent Events for real-time playback and session notifications.";
+        public override string Description => "Server-Sent Events endpoint for real-time playback and session notifications.";
     }
 }
