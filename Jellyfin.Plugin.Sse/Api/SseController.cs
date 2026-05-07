@@ -35,6 +35,7 @@ public class SseController(ISseEventBroadcaster broadcaster, ILogger<SseControll
         }
         catch (OperationCanceledException)
         {
+            // expected on client disconnect
         }
         finally
         {
