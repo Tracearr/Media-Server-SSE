@@ -62,28 +62,6 @@ public class SseEventBroadcasterTests : IDisposable
     }
 
     [Fact]
-    public void Broadcast_DropsEventForFullChannel()
-    {
-        var (_, reader) = _broadcaster.Subscribe();
-
-        for (int i = 0; i < 100; i++)
-        {
-            _broadcaster.Broadcast(new SseEvent { EventType = "progress", SessionId = $"s{i}" });
-        }
-
-        // DropWrite silently drops the newest item when full — TryWrite still returns true
-        _broadcaster.Broadcast(new SseEvent { EventType = "progress", SessionId = "overflow" });
-
-        int count = 0;
-        while (reader.TryRead(out _))
-        {
-            count++;
-        }
-
-        Assert.Equal(100, count);
-    }
-
-    [Fact]
     public async Task PingTimer_SendsPingEvents()
     {
         using var fastBroadcaster = new SseEventBroadcaster(
@@ -96,5 +74,51 @@ public class SseEventBroadcasterTests : IDisposable
         var evt = await reader.ReadAsync(cts.Token);
 
         Assert.Equal("ping", evt.EventType);
+    }
+
+    [Fact]
+    public async Task Broadcast_CompletesSubscriberChannel_WhenBufferOverflows()
+    {
+        using var broadcaster = new SseEventBroadcaster(NullLogger<SseEventBroadcaster>.Instance);
+        var (_, reader) = broadcaster.Subscribe();
+
+        // Never read; exceed the buffer (capacity 512) to force overflow
+        for (var i = 0; i < 600; i++)
+        {
+            broadcaster.Broadcast(new SseEvent { EventType = "progress", SessionId = i.ToString() });
+        }
+
+        // Drain what was buffered; the channel must then be completed, not open-and-lossy
+        var drained = 0;
+        while (reader.TryRead(out _))
+        {
+            drained++;
+        }
+
+        Assert.Equal(512, drained);
+        await reader.Completion.WaitAsync(TimeSpan.FromSeconds(2));
+        Assert.True(reader.Completion.IsCompleted);
+    }
+
+    [Fact]
+    public void Broadcast_DoesNotAffectHealthySubscriber_WhenAnotherOverflows()
+    {
+        using var broadcaster = new SseEventBroadcaster(NullLogger<SseEventBroadcaster>.Instance);
+        var (_, stalled) = broadcaster.Subscribe();
+        var (_, healthy) = broadcaster.Subscribe();
+
+        for (var i = 0; i < 600; i++)
+        {
+            broadcaster.Broadcast(new SseEvent { EventType = "progress", SessionId = i.ToString() });
+            // Healthy subscriber keeps up
+            healthy.TryRead(out _);
+        }
+
+        // Healthy channel still open and writable
+        broadcaster.Broadcast(new SseEvent { EventType = "ping" });
+        Assert.True(healthy.TryRead(out var evt));
+        Assert.Equal("ping", evt!.EventType);
+        Assert.False(healthy.Completion.IsCompleted);
+        _ = stalled; // overflowed subscriber asserted in the other test
     }
 }

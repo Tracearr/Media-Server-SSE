@@ -7,12 +7,13 @@ namespace MediaServer.Sse.Core.Broadcasting;
 
 public class SseEventBroadcaster : ISseEventBroadcaster
 {
-    private const int ChannelCapacity = 100;
+    private const int ChannelCapacity = 512;
 
     private readonly ConcurrentDictionary<Guid, ChannelWriter<SseEvent>> _subscribers = new();
     private readonly ILogger<SseEventBroadcaster> _logger;
     private readonly Timer _pingTimer;
     private bool _disposed;
+    private long _overflowDisconnects;
 
     public SseEventBroadcaster(ILogger<SseEventBroadcaster> logger, int pingIntervalMs = 30_000)
     {
@@ -25,7 +26,7 @@ public class SseEventBroadcaster : ISseEventBroadcaster
         var id = Guid.NewGuid();
         var channel = Channel.CreateBounded<SseEvent>(new BoundedChannelOptions(ChannelCapacity)
         {
-            FullMode = BoundedChannelFullMode.DropWrite,
+            FullMode = BoundedChannelFullMode.Wait,
             SingleWriter = false,
             SingleReader = true
         });
@@ -51,10 +52,17 @@ public class SseEventBroadcaster : ISseEventBroadcaster
         {
             if (!kvp.Value.TryWrite(sseEvent))
             {
-                // Channel completed (client gone) — clean up
+                // Full or completed channel: end this subscriber's stream so the
+                // client reconnects and resyncs, rather than losing events silently
                 if (kvp.Value.TryComplete())
                 {
-                    _subscribers.TryRemove(kvp.Key, out _);
+                    if (_subscribers.TryRemove(kvp.Key, out _))
+                    {
+                        var count = Interlocked.Increment(ref _overflowDisconnects);
+                        _logger.LogWarning(
+                            "SSE subscriber {Id} disconnected on buffer overflow (total overflow disconnects: {Count})",
+                            kvp.Key, count);
+                    }
                 }
             }
         }
