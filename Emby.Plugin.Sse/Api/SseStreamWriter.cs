@@ -6,7 +6,6 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Services;
 using MediaServer.Sse.Core.Broadcasting;
-using MediaServer.Sse.Core.Models;
 
 namespace Emby.Plugin.Sse.Api
 {
@@ -17,10 +16,12 @@ namespace Emby.Plugin.Sse.Api
         private static readonly byte[] FrameTerminator = Encoding.UTF8.GetBytes("\n\n");
 
         private readonly ISseEventBroadcaster _broadcaster;
+        private readonly string? _version;
 
-        public SseStreamWriter(ISseEventBroadcaster broadcaster)
+        public SseStreamWriter(ISseEventBroadcaster broadcaster, string? version)
         {
             _broadcaster = broadcaster;
+            _version = version;
         }
 
         public async Task WriteToAsync(IResponse response, CancellationToken cancellationToken)
@@ -31,6 +32,13 @@ namespace Emby.Plugin.Sse.Api
             response.AddHeader("X-Accel-Buffering", "no");
 
             var writer = response.OutputWriter;
+
+            var helloBytes = Encoding.UTF8.GetBytes(SseHello.BuildFrame(_version, "emby"));
+            var helloMemory = writer.GetMemory(helloBytes.Length);
+            helloBytes.AsMemory().CopyTo(helloMemory);
+            writer.Advance(helloBytes.Length);
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+
             var subscription = _broadcaster.Subscribe();
             var id = subscription.Id;
             var reader = subscription.Reader;

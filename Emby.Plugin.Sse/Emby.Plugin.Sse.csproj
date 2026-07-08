@@ -19,6 +19,7 @@
   <ItemGroup>
     <Compile Include="..\MediaServer.Sse.Core\Broadcasting\ISseEventBroadcaster.cs" />
     <Compile Include="..\MediaServer.Sse.Core\Broadcasting\SseEventBroadcaster.cs" />
+    <Compile Include="..\MediaServer.Sse.Core\Broadcasting\SseHello.cs" />
     <Compile Include="..\MediaServer.Sse.Core\Models\SseEvent.cs" />
   </ItemGroup>
 

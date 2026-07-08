@@ -15,7 +15,8 @@ namespace Emby.Plugin.Sse.Api
                 throw new InvalidOperationException("SSE broadcaster not available");
             }
 
-            return new SseStreamWriter(broadcaster);
+            var version = typeof(SsePlugin).Assembly.GetName().Version?.ToString();
+            return new SseStreamWriter(broadcaster, version);
         }
     }
 }
