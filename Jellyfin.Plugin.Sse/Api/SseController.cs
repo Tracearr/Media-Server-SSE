@@ -25,12 +25,12 @@ public class SseController(ISseEventBroadcaster broadcaster, ILogger<SseControll
         var (id, reader) = broadcaster.Subscribe();
         logger.LogInformation("SSE client connected: {Id}", id);
 
-        var version = typeof(SsePlugin).Assembly.GetName().Version?.ToString();
-        await Response.WriteAsync(SseHello.BuildFrame(version, "jellyfin"), HttpContext.RequestAborted);
-        await Response.Body.FlushAsync(HttpContext.RequestAborted);
-
         try
         {
+            var version = typeof(SsePlugin).Assembly.GetName().Version?.ToString();
+            await Response.WriteAsync(SseHello.BuildFrame(version, "jellyfin"), HttpContext.RequestAborted);
+            await Response.Body.FlushAsync(HttpContext.RequestAborted);
+
             await foreach (var evt in reader.ReadAllAsync(HttpContext.RequestAborted))
             {
                 var data = JsonSerializer.Serialize(evt);
