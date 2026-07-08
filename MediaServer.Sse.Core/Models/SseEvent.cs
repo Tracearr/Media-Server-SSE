@@ -30,4 +30,12 @@ public class SseEvent
     [JsonPropertyName("playedToCompletion")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? PlayedToCompletion { get; set; }
+
+    [JsonPropertyName("version")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Version { get; set; }
+
+    [JsonPropertyName("server")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Server { get; set; }
 }
