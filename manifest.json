@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/logo.png",
     "versions": [
       {
+        "version": "0.2.0.0",
+        "changelog": "See GitHub release notes.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.2.0/Tracearr.Sse.Jellyfin_0.2.0.zip",
+        "checksum": "bb552f71aca6b5d0390adca777073176",
+        "timestamp": "2026-07-09T15:52:22Z"
+      },
+      {
         "version": "0.1.0.0",
         "changelog": "See GitHub release notes.",
         "targetAbi": "10.11.0.0",
