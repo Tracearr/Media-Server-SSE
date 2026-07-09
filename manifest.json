@@ -6,7 +6,7 @@
     "overview": "Real-time playback and session events over Server-Sent Events.",
     "owner": "Connor Gallopo - Tracearr",
     "category": "General",
-    "imageUrl": "https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/icon-256.png",
+    "imageUrl": "https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/logo.png",
     "versions": [
       {
         "version": "0.1.0.0",

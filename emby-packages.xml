@@ -7,8 +7,8 @@
     <description>Real-time playback and session events over Server-Sent Events.</description>
     <overview>Streams playback start, progress, pause, stop, and session connect and disconnect events as Server-Sent Events, plus a hello event carrying the plugin version. Built for Tracearr. Works with any SSE client.</overview>
     <category>General</category>
-    <thumbImage>https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/og.png</thumbImage>
-    <previewImage>https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/og.png</previewImage>
+    <thumbImage>https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/tile.png</thumbImage>
+    <previewImage>https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/preview.png</previewImage>
     <tileColor>#081421</tileColor>
     <website>https://github.com/Tracearr/Media-Server-SSE</website>
     <targetFilename>Emby.Plugin.Sse.dll</targetFilename>
