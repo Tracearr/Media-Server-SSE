@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-09
+
+### Added
+
+- `hello` event sent as the first frame on every SSE connection, carrying the plugin version and server type. Tracearr uses it to show the installed version and nudge when a newer release exists.
+
+### Changed
+
+- A subscriber whose event buffer fills up is now disconnected so it can reconnect and resync. Previously overflow events were dropped silently while the connection stayed open.
+- Per-subscriber event buffer raised from 100 to 512.
+- Local dev builds report version 0.0.0.0 so they always read as older than any release.
+
+### Fixed
+
+- Released builds now advertise their real version. The assembly version derives from the release tag instead of a pinned default.
+- A client that disconnects during the hello write no longer leaks its subscription (Jellyfin).
+
 ## [0.1.0] - 2026-05-07
 
 ### Added
