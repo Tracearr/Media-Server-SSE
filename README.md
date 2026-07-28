@@ -1,6 +1,6 @@
 # Tracearr SSE
 
-Jellyfin and Emby plugins that expose a Server-Sent Events endpoint for real-time playback and session notifications. Built for the [Tracearr](https://github.com/Tracearr/Tracearr) scrobbler. Works with anything that consumes SSE.
+Jellyfin and Emby plugins that expose a Server-Sent Events endpoint for real-time playback and session notifications. Built for [Tracearr](https://github.com/connorgallopo/Tracearr). Works with anything that consumes SSE.
 
 ## Why
 
