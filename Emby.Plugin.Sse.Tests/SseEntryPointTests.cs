@@ -244,9 +244,7 @@ public class SseEntryPointTests : IDisposable
         var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
 
-        var itemId = Guid.NewGuid();
-        var parentId = Guid.NewGuid();
-        var args = CreateItemChangeArgs(itemId, parentId);
+        var args = CreateItemChangeArgs(internalId: 2539, parentInternalId: 17);
         var reader = Subscribe();
 
         _libraryManager.Raise(m => m.ItemAdded += null, _libraryManager.Object, args);
@@ -254,9 +252,9 @@ public class SseEntryPointTests : IDisposable
         var evt = ReadSingle(reader);
         Assert.NotNull(evt);
         Assert.Equal("library.item.added", evt!.EventType);
-        Assert.Equal(itemId.ToString("N"), evt.ItemId);
+        Assert.Equal("2539", evt.ItemId);
         Assert.Equal("Audio", evt.ItemType);
-        Assert.Equal(parentId.ToString("N"), evt.ParentId);
+        Assert.Equal("17", evt.ParentId);
 
         entryPoint.Dispose();
     }
@@ -267,9 +265,7 @@ public class SseEntryPointTests : IDisposable
         var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
 
-        var itemId = Guid.NewGuid();
-        var parentId = Guid.NewGuid();
-        var args = CreateItemChangeArgs(itemId, parentId);
+        var args = CreateItemChangeArgs(internalId: 2539, parentInternalId: 17);
         var reader = Subscribe();
 
         _libraryManager.Raise(m => m.ItemRemoved += null, _libraryManager.Object, args);
@@ -277,7 +273,7 @@ public class SseEntryPointTests : IDisposable
         var evt = ReadSingle(reader);
         Assert.NotNull(evt);
         Assert.Equal("library.item.removed", evt!.EventType);
-        Assert.Equal(itemId.ToString("N"), evt.ItemId);
+        Assert.Equal("2539", evt.ItemId);
 
         entryPoint.Dispose();
     }
@@ -334,10 +330,10 @@ public class SseEntryPointTests : IDisposable
         entryPoint.Dispose();
     }
 
-    private static ItemChangeEventArgs CreateItemChangeArgs(Guid itemId, Guid parentId)
+    private static ItemChangeEventArgs CreateItemChangeArgs(long internalId, long parentInternalId)
     {
-        var item = new Audio { Id = itemId };
-        var parent = new Audio { Id = parentId };
+        var item = new Audio { Id = Guid.NewGuid(), InternalId = internalId };
+        var parent = new Audio { Id = Guid.NewGuid(), InternalId = parentInternalId };
         return new ItemChangeEventArgs(Mock.Of<ILibraryManager>()) { Item = item, Parent = parent };
     }
 

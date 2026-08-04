@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The format is based on 
 
 ### Added
 
-- `library.item.added` and `library.item.removed` events, fired when an item finishes being added to or is removed from a library. Payload carries `itemId`, `itemType`, and `parentId` (the immediate parent container, e.g. a season or library folder). Theme media and virtual/placeholder items are filtered out, same as playback events.
+- `library.item.added` and `library.item.removed` events, fired when an item finishes being added to or is removed from a library. Payload carries `itemId`, `itemType`, and `parentId` (the immediate parent container, e.g. a season or library folder). Ids match the server's REST API: GUID form on Jellyfin, numeric internal id on Emby. Theme media and virtual/placeholder items are filtered out, same as playback events.
 
 ## [0.2.0] - 2026-07-09
 

@@ -86,6 +86,7 @@ data: {}
 - Theme music and local trailer playback events are filtered out.
 - Library events fire once per changed item, no batching. Theme media and virtual/placeholder items (e.g. missing episodes) are filtered out, same as playback events. `parentId` is the item's immediate parent (a season for an episode, a library folder for a top-level series or movie), not necessarily the library root.
 - Emby also raises events for container folders (a new movie's directory arrives as `itemType: "Folder"` alongside the movie), and deleting a directory fires a removed event for the folder only, not each child. Jellyfin reports each media item individually in both directions. Don't assume added/removed pairs match one-to-one on Emby; treat removals as a cue to re-query.
+- Library event ids match what each server's REST API reports: the 32-character GUID form on Jellyfin, the numeric internal id on Emby. Emby playback events keep the GUID `itemId` they have always had.
 
 ## Verifying releases
 

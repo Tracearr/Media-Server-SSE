@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Emby.Plugin.Sse.Logging;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
@@ -149,12 +150,14 @@ namespace Emby.Plugin.Sse
             if (item == null || item.IsThemeMedia || item.IsVirtualItem)
                 return null;
 
+            // InternalId, not the Guid: Emby's REST API identifies items by the numeric
+            // internal id, so this is the only form consumers can correlate.
             return new SseEvent
             {
                 EventType = eventType,
-                ItemId = item.Id.ToString("N"),
+                ItemId = item.InternalId.ToString(CultureInfo.InvariantCulture),
                 ItemType = item.GetClientTypeName(),
-                ParentId = args.Parent?.Id.ToString("N")
+                ParentId = args.Parent?.InternalId.ToString(CultureInfo.InvariantCulture)
             };
         }
 
