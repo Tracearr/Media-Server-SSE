@@ -2,7 +2,7 @@
   {
     "guid": "b4a6d7e2-8f3c-4a1e-9d5b-2c7f0e8a1b3d",
     "name": "Tracearr SSE",
-    "description": "Streams playback start, progress, pause, stop, and session connect and disconnect events as Server-Sent Events, plus a hello event carrying the plugin version. Built for Tracearr. Works with any SSE client.",
+    "description": "Streams playback start, progress, pause, stop, session connect and disconnect, and library item added/removed events as Server-Sent Events, plus a hello event carrying the plugin version. Built for Tracearr. Works with any SSE client.",
     "overview": "Real-time playback and session events over Server-Sent Events.",
     "owner": "Connor Gallopo - Tracearr",
     "category": "General",

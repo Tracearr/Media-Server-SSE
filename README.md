@@ -4,7 +4,7 @@ Jellyfin and Emby plugins that expose a Server-Sent Events endpoint for real-tim
 
 ## Why
 
-Neither Jellyfin nor Emby has a built-in way to subscribe to playback events over a persistent HTTP connection. The webhook plugins push to external URLs, which isn't what you want when your client wants to hold a stream open. This plugin gives you a standard SSE endpoint that fires events when playback starts, stops, pauses, progresses, or when sessions connect or disconnect.
+Neither Jellyfin nor Emby has a built-in way to subscribe to playback events over a persistent HTTP connection. The webhook plugins push to external URLs, which isn't what you want when your client wants to hold a stream open. This plugin gives you a standard SSE endpoint that fires events when playback starts, stops, pauses, progresses, when sessions connect or disconnect, or when items are added to or removed from a library.
 
 ## Install
 
@@ -57,6 +57,8 @@ curl -N -H 'X-Emby-Token: YOUR_API_KEY' \
 | `stopped` | sessionId, itemId, userId, state, positionTicks, playedToCompletion | Playback stopped |
 | `session.start` | sessionId, userId | Device session connected |
 | `session.end` | sessionId, userId | Device session disconnected |
+| `library.item.added` | itemId, itemType, parentId | Item finished being added to a library |
+| `library.item.removed` | itemId, itemType, parentId | Item removed from a library |
 | `ping` | (empty) | Keepalive every 30 seconds |
 
 ### Wire format
@@ -67,6 +69,9 @@ data: {"sessionId":"abc123","itemId":"def456","userId":"user1","state":"playing"
 
 event: stopped
 data: {"sessionId":"abc123","itemId":"def456","userId":"user1","state":"stopped","positionTicks":50000000,"playedToCompletion":true}
+
+event: library.item.added
+data: {"itemId":"def456","itemType":"Movie","parentId":"lib789"}
 
 event: ping
 data: {}
@@ -79,6 +84,8 @@ data: {}
 - Bounded channel per subscriber (capacity 100). If a client falls behind, events drop silently. Reconnect and poll `/Sessions` to catch up.
 - Progress events pass through at whatever rate the media server reports them (typically every 5–10 seconds). No server-side throttling.
 - Theme music and local trailer playback events are filtered out.
+- Library events fire once per changed item, no batching. Theme media and virtual/placeholder items (e.g. missing episodes) are filtered out, same as playback events. `parentId` is the item's immediate parent (a season for an episode, a library folder for a top-level series or movie), not necessarily the library root.
+- Emby also raises events for container folders (a new movie's directory arrives as `itemType: "Folder"` alongside the movie), and deleting a directory fires a removed event for the folder only, not each child. Jellyfin reports each media item individually in both directions. Don't assume added/removed pairs match one-to-one on Emby; treat removals as a cue to re-query.
 
 ## Verifying releases
 
@@ -117,8 +124,8 @@ dotnet test
 Three projects, two distribution shapes:
 
 - `MediaServer.Sse.Core` — platform-agnostic event model and broadcaster. Uses `System.Threading.Channels` for fan-out.
-- `Jellyfin.Plugin.Sse` — five `IEventConsumer<T>` implementations + an ASP.NET Core controller for the SSE endpoint. Ships as `Jellyfin.Plugin.Sse.dll` + `MediaServer.Sse.Core.dll`.
-- `Emby.Plugin.Sse` — single `IServerEntryPoint` that subscribes to `ISessionManager` events + an `IService` + `IAsyncStreamWriter` endpoint. Ships as a single `Emby.Plugin.Sse.dll`; Core sources are inlined at compile time because Emby's plugin loader only resolves a single DLL per plugin.
+- `Jellyfin.Plugin.Sse` — five `IEventConsumer<T>` implementations for playback/session events, a hosted service that subscribes directly to `ILibraryManager`'s `ItemAdded`/`ItemRemoved` events, and an ASP.NET Core controller for the SSE endpoint. Ships as `Jellyfin.Plugin.Sse.dll` + `MediaServer.Sse.Core.dll`.
+- `Emby.Plugin.Sse` — single `IServerEntryPoint` that subscribes to `ISessionManager` and `ILibraryManager` events + an `IService` + `IAsyncStreamWriter` endpoint. Ships as a single `Emby.Plugin.Sse.dll`; Core sources are inlined at compile time because Emby's plugin loader only resolves a single DLL per plugin.
 
 ## License
 

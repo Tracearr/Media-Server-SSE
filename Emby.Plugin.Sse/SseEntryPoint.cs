@@ -13,14 +13,16 @@ namespace Emby.Plugin.Sse
     public class SseEntryPoint : IServerEntryPoint
     {
         private readonly ISessionManager _sessionManager;
+        private readonly ILibraryManager _libraryManager;
         private readonly ILogger _logger;
         private SseEventBroadcaster? _broadcaster;
 
         public static ISseEventBroadcaster? Broadcaster { get; private set; }
 
-        public SseEntryPoint(ISessionManager sessionManager, ILogManager logManager)
+        public SseEntryPoint(ISessionManager sessionManager, ILibraryManager libraryManager, ILogManager logManager)
         {
             _sessionManager = sessionManager;
+            _libraryManager = libraryManager;
             _logger = logManager.GetLogger(GetType().Name);
         }
 
@@ -35,6 +37,8 @@ namespace Emby.Plugin.Sse
             _sessionManager.PlaybackStopped += OnPlaybackStopped;
             _sessionManager.SessionStarted += OnSessionStarted;
             _sessionManager.SessionEnded += OnSessionEnded;
+            _libraryManager.ItemAdded += OnItemAdded;
+            _libraryManager.ItemRemoved += OnItemRemoved;
 
             _logger.Info("SSE plugin started");
         }
@@ -46,6 +50,8 @@ namespace Emby.Plugin.Sse
             _sessionManager.PlaybackStopped -= OnPlaybackStopped;
             _sessionManager.SessionStarted -= OnSessionStarted;
             _sessionManager.SessionEnded -= OnSessionEnded;
+            _libraryManager.ItemAdded -= OnItemAdded;
+            _libraryManager.ItemRemoved -= OnItemRemoved;
 
             _broadcaster?.Dispose();
             Broadcaster = null;
@@ -114,6 +120,42 @@ namespace Emby.Plugin.Sse
                 SessionId = session.Id,
                 UserId = session.UserId
             });
+        }
+
+        private void OnItemAdded(object sender, ItemChangeEventArgs e) => HandleLibraryEvent(e, "library.item.added");
+
+        private void OnItemRemoved(object sender, ItemChangeEventArgs e) => HandleLibraryEvent(e, "library.item.removed");
+
+        private void HandleLibraryEvent(ItemChangeEventArgs args, string eventType)
+        {
+            // Never let a malformed item shape throw into the library manager's event dispatch.
+            try
+            {
+                var evt = TryCreateLibraryEvent(args, eventType);
+                if (evt != null)
+                {
+                    _broadcaster?.Broadcast(evt);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException($"Failed to emit {eventType} event", ex);
+            }
+        }
+
+        private static SseEvent? TryCreateLibraryEvent(ItemChangeEventArgs args, string eventType)
+        {
+            var item = args.Item;
+            if (item == null || item.IsThemeMedia || item.IsVirtualItem)
+                return null;
+
+            return new SseEvent
+            {
+                EventType = eventType,
+                ItemId = item.Id.ToString("N"),
+                ItemType = item.GetClientTypeName(),
+                ParentId = args.Parent?.Id.ToString("N")
+            };
         }
 
         private static SseEvent? TryCreatePlaybackEvent(PlaybackProgressEventArgs args, string eventType, string state)

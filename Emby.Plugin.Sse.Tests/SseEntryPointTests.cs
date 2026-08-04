@@ -5,6 +5,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Session;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaServer.Sse.Core.Broadcasting;
 using MediaServer.Sse.Core.Models;
@@ -16,12 +17,14 @@ namespace Emby.Plugin.Sse.Tests;
 public class SseEntryPointTests : IDisposable
 {
     private readonly Mock<ISessionManager> _sessionManager;
+    private readonly Mock<ILibraryManager> _libraryManager;
     private readonly Mock<ILogManager> _logManager;
     private readonly Mock<ILogger> _logger;
 
     public SseEntryPointTests()
     {
         _sessionManager = new Mock<ISessionManager>();
+        _libraryManager = new Mock<ILibraryManager>();
         _logManager = new Mock<ILogManager>();
         _logger = new Mock<ILogger>();
         _logManager.Setup(m => m.GetLogger(It.IsAny<string>())).Returns(_logger.Object);
@@ -37,7 +40,7 @@ public class SseEntryPointTests : IDisposable
     [Fact]
     public void Run_SetsBroadcasterStaticProperty()
     {
-        var entryPoint = new SseEntryPoint(_sessionManager.Object, _logManager.Object);
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
 
         entryPoint.Run();
 
@@ -48,7 +51,7 @@ public class SseEntryPointTests : IDisposable
     [Fact]
     public void Dispose_ClearsBroadcaster()
     {
-        var entryPoint = new SseEntryPoint(_sessionManager.Object, _logManager.Object);
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
         Assert.NotNull(SseEntryPoint.Broadcaster);
 
@@ -60,7 +63,7 @@ public class SseEntryPointTests : IDisposable
     [Fact]
     public void PlaybackStart_BroadcastsPlayingEvent()
     {
-        var entryPoint = new SseEntryPoint(_sessionManager.Object, _logManager.Object);
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
 
         var userId = Guid.NewGuid();
@@ -84,7 +87,7 @@ public class SseEntryPointTests : IDisposable
     [Fact]
     public void PlaybackProgress_NotPaused_BroadcastsProgressEvent()
     {
-        var entryPoint = new SseEntryPoint(_sessionManager.Object, _logManager.Object);
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
 
         var userId = Guid.NewGuid();
@@ -106,7 +109,7 @@ public class SseEntryPointTests : IDisposable
     [Fact]
     public void PlaybackProgress_Paused_BroadcastsPausedEvent()
     {
-        var entryPoint = new SseEntryPoint(_sessionManager.Object, _logManager.Object);
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
 
         var userId = Guid.NewGuid();
@@ -128,7 +131,7 @@ public class SseEntryPointTests : IDisposable
     [Fact]
     public void PlaybackStopped_BroadcastsStoppedEventWithPlayedToCompletion()
     {
-        var entryPoint = new SseEntryPoint(_sessionManager.Object, _logManager.Object);
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
 
         var userId = Guid.NewGuid();
@@ -150,7 +153,7 @@ public class SseEntryPointTests : IDisposable
     [Fact]
     public void SessionStarted_BroadcastsSessionStartEvent()
     {
-        var entryPoint = new SseEntryPoint(_sessionManager.Object, _logManager.Object);
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
 
         var args = new SessionEventArgs
@@ -173,7 +176,7 @@ public class SseEntryPointTests : IDisposable
     [Fact]
     public void SessionEnded_BroadcastsSessionEndEvent()
     {
-        var entryPoint = new SseEntryPoint(_sessionManager.Object, _logManager.Object);
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
 
         var args = new SessionEventArgs
@@ -196,7 +199,7 @@ public class SseEntryPointTests : IDisposable
     [Fact]
     public void PlaybackStart_SkipsWhenNoUsers()
     {
-        var entryPoint = new SseEntryPoint(_sessionManager.Object, _logManager.Object);
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
 
         var args = CreatePlaybackProgressArgs(Guid.Empty, Guid.NewGuid(), "s1", false, 0, includeUser: false);
@@ -213,7 +216,7 @@ public class SseEntryPointTests : IDisposable
     [Fact]
     public void PlaybackStart_SkipsWhenItemIsNull()
     {
-        var entryPoint = new SseEntryPoint(_sessionManager.Object, _logManager.Object);
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
         entryPoint.Run();
 
         var userId = Guid.NewGuid();
@@ -233,6 +236,114 @@ public class SseEntryPointTests : IDisposable
         Assert.Null(evt);
 
         entryPoint.Dispose();
+    }
+
+    [Fact]
+    public void ItemAdded_BroadcastsLibraryItemAddedEvent()
+    {
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
+        entryPoint.Run();
+
+        var itemId = Guid.NewGuid();
+        var parentId = Guid.NewGuid();
+        var args = CreateItemChangeArgs(itemId, parentId);
+        var reader = Subscribe();
+
+        _libraryManager.Raise(m => m.ItemAdded += null, _libraryManager.Object, args);
+
+        var evt = ReadSingle(reader);
+        Assert.NotNull(evt);
+        Assert.Equal("library.item.added", evt!.EventType);
+        Assert.Equal(itemId.ToString("N"), evt.ItemId);
+        Assert.Equal("Audio", evt.ItemType);
+        Assert.Equal(parentId.ToString("N"), evt.ParentId);
+
+        entryPoint.Dispose();
+    }
+
+    [Fact]
+    public void ItemRemoved_BroadcastsLibraryItemRemovedEvent()
+    {
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
+        entryPoint.Run();
+
+        var itemId = Guid.NewGuid();
+        var parentId = Guid.NewGuid();
+        var args = CreateItemChangeArgs(itemId, parentId);
+        var reader = Subscribe();
+
+        _libraryManager.Raise(m => m.ItemRemoved += null, _libraryManager.Object, args);
+
+        var evt = ReadSingle(reader);
+        Assert.NotNull(evt);
+        Assert.Equal("library.item.removed", evt!.EventType);
+        Assert.Equal(itemId.ToString("N"), evt.ItemId);
+
+        entryPoint.Dispose();
+    }
+
+    [Fact]
+    public void ItemAdded_SkipsThemeMedia()
+    {
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
+        entryPoint.Run();
+
+        var item = new Audio { Id = Guid.NewGuid(), ExtraType = ExtraType.ThemeSong };
+        var args = new ItemChangeEventArgs(_libraryManager.Object) { Item = item };
+        var reader = Subscribe();
+
+        _libraryManager.Raise(m => m.ItemAdded += null, _libraryManager.Object, args);
+
+        Assert.Null(ReadSingle(reader));
+
+        entryPoint.Dispose();
+    }
+
+    [Fact]
+    public void ItemAdded_SkipsVirtualItem()
+    {
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
+        entryPoint.Run();
+
+        var item = new Audio { Id = Guid.NewGuid(), IsVirtualItem = true };
+        var args = new ItemChangeEventArgs(_libraryManager.Object) { Item = item };
+        var reader = Subscribe();
+
+        _libraryManager.Raise(m => m.ItemAdded += null, _libraryManager.Object, args);
+
+        Assert.Null(ReadSingle(reader));
+
+        entryPoint.Dispose();
+    }
+
+    [Fact]
+    public void ItemAdded_UnexpectedItemShape_LogsAndDropsInsteadOfThrowing()
+    {
+        var entryPoint = new SseEntryPoint(_sessionManager.Object, _libraryManager.Object, _logManager.Object);
+        entryPoint.Run();
+
+        var item = new ThrowingItem { Id = Guid.NewGuid() };
+        var args = new ItemChangeEventArgs(_libraryManager.Object) { Item = item };
+        var reader = Subscribe();
+
+        _libraryManager.Raise(m => m.ItemAdded += null, _libraryManager.Object, args);
+
+        Assert.Null(ReadSingle(reader));
+        _logger.Verify(l => l.ErrorException(It.IsAny<string>(), It.IsAny<Exception>()), Times.Once);
+
+        entryPoint.Dispose();
+    }
+
+    private static ItemChangeEventArgs CreateItemChangeArgs(Guid itemId, Guid parentId)
+    {
+        var item = new Audio { Id = itemId };
+        var parent = new Audio { Id = parentId };
+        return new ItemChangeEventArgs(Mock.Of<ILibraryManager>()) { Item = item, Parent = parent };
+    }
+
+    private sealed class ThrowingItem : Audio
+    {
+        public override string GetClientTypeName() => throw new InvalidOperationException("boom");
     }
 
     private ChannelReader<SseEvent> Subscribe()

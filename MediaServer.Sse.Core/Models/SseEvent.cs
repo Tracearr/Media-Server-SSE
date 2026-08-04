@@ -15,6 +15,14 @@ public class SseEvent
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ItemId { get; set; }
 
+    [JsonPropertyName("itemType")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ItemType { get; set; }
+
+    [JsonPropertyName("parentId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ParentId { get; set; }
+
     [JsonPropertyName("userId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? UserId { get; set; }

@@ -6,6 +6,7 @@ using MediaBrowser.Controller.Events.Session;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Jellyfin.Plugin.Sse;
 
@@ -20,5 +21,7 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddScoped<IEventConsumer<PlaybackProgressEventArgs>, PlaybackProgressSseConsumer>();
         serviceCollection.AddScoped<IEventConsumer<SessionStartedEventArgs>, SessionStartSseConsumer>();
         serviceCollection.AddScoped<IEventConsumer<SessionEndedEventArgs>, SessionEndSseConsumer>();
+
+        serviceCollection.AddHostedService<LibrarySseConsumer>();
     }
 }
