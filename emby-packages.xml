@@ -16,6 +16,15 @@
     <targetSystem>Server</targetSystem>
     <versions>
       <version>
+        <versionStr>0.3.0.0</versionStr>
+        <classification>Release</classification>
+        <description>See GitHub release notes.</description>
+        <sourceUrl>https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.3.0/Tracearr.Sse.Emby_0.3.0.zip</sourceUrl>
+        <checksum>e30d7293408396efb00715e1589df095</checksum>
+        <runtimes>netstandard</runtimes>
+        <timestamp>2026-08-04T19:35:52Z</timestamp>
+      </version>
+      <version>
         <versionStr>0.2.0.0</versionStr>
         <classification>Release</classification>
         <description>See GitHub release notes.</description>
