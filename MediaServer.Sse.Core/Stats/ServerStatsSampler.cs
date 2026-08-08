@@ -24,7 +24,7 @@ public sealed class ServerStatsSampler
     private const string ProcStatPath = "/proc/stat";
     private const string ProcMeminfoPath = "/proc/meminfo";
 
-    private DateTime _lastSampleUtc;
+    private long _lastTimestamp;
     private TimeSpan _lastProcessCpu;
     private long _lastHostIdle;
     private long _lastHostTotal;
@@ -32,12 +32,15 @@ public sealed class ServerStatsSampler
 
     public ServerStatsSample? Sample()
     {
-        var now = DateTime.UtcNow;
+        // Stopwatch is monotonic; wall clock steps (NTP) would distort CPU deltas
+        var now = Stopwatch.GetTimestamp();
         TimeSpan processCpu;
+        long workingSet;
         try
         {
             using var process = Process.GetCurrentProcess();
             processCpu = process.TotalProcessorTime;
+            workingSet = process.WorkingSet64;
         }
         catch
         {
@@ -48,7 +51,7 @@ public sealed class ServerStatsSampler
 
         if (!_primed)
         {
-            _lastSampleUtc = now;
+            _lastTimestamp = now;
             _lastProcessCpu = processCpu;
             if (host.HasValue)
             {
@@ -60,7 +63,7 @@ public sealed class ServerStatsSampler
             return null;
         }
 
-        var elapsedMs = (now - _lastSampleUtc).TotalMilliseconds;
+        var elapsedMs = (now - _lastTimestamp) * 1000.0 / Stopwatch.Frequency;
         if (elapsedMs <= 0)
         {
             return null;
@@ -88,19 +91,11 @@ public sealed class ServerStatsSampler
             if (totalBytes > 0)
             {
                 sample.HostMemoryUtilization = Clamp(100.0 * (totalBytes - availableBytes) / totalBytes);
-                try
-                {
-                    using var process = Process.GetCurrentProcess();
-                    sample.ProcessMemoryUtilization = Clamp(100.0 * process.WorkingSet64 / totalBytes);
-                }
-                catch
-                {
-                    // WorkingSet unavailable; host memory alone is still useful
-                }
+                sample.ProcessMemoryUtilization = Clamp(100.0 * workingSet / totalBytes);
             }
         }
 
-        _lastSampleUtc = now;
+        _lastTimestamp = now;
         _lastProcessCpu = processCpu;
         if (host.HasValue)
         {
