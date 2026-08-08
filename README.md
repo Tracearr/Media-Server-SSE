@@ -1,14 +1,22 @@
 # Tracearr SSE
 
-Jellyfin and Emby plugins that expose a Server-Sent Events endpoint for real-time playback and session notifications. Built for [Tracearr](https://github.com/connorgallopo/Tracearr). Works with anything that consumes SSE.
+Jellyfin and Emby plugins that add a Server-Sent Events (SSE) endpoint for real-time playback, session, library, scheduled task, and server stat events. One authenticated HTTP connection, events the moment they happen. Built for [Tracearr](https://github.com/connorgallopo/Tracearr). Works with anything that consumes SSE.
+
+![curl connected to the Jellyfin SSE endpoint, streaming playback, session, library, and server stat events](assets/sse-terminal.png)
 
 ## Why
 
-Neither Jellyfin nor Emby has a built-in way to subscribe to playback events over a persistent HTTP connection. The webhook plugins push to external URLs, which isn't what you want when your client wants to hold a stream open. This plugin gives you a standard SSE endpoint that fires events when playback starts, stops, pauses, progresses, when sessions connect or disconnect, when items are added to or removed from a library, when scheduled tasks run, and with server CPU/RAM utilization every 6 seconds.
+Neither Jellyfin nor Emby lets an outside app subscribe to playback events over a persistent HTTP connection. The webhook plugins push to external URLs, so your client has to run a reachable HTTP server of its own to listen. On Emby, webhooks also require a Premiere subscription. Jellyfin's WebSocket withholds session data from API-key clients ([jellyfin#13479](https://github.com/jellyfin/jellyfin/issues/13479)). That leaves polling `/Sessions`, which finds a session only after the fact.
+
+This plugin gives you a standard SSE endpoint on the server itself. Events fire when playback starts, stops, pauses, progresses, when sessions connect or disconnect, when items are added to or removed from a library, when scheduled tasks run, and with server CPU/RAM utilization every 6 seconds. Pause is a first-class event, library items arrive one event per item, and no subscription is involved.
+
+The [plugin docs](https://docs.tracearr.com/sse-plugin) cover [installation](https://docs.tracearr.com/sse-plugin/installation), the full [event reference](https://docs.tracearr.com/sse-plugin/events), [client examples](https://docs.tracearr.com/sse-plugin/consuming) in curl, JavaScript, and Python, [troubleshooting](https://docs.tracearr.com/sse-plugin/troubleshooting), and an honest [comparison with the webhook plugin, the WebSocket, and polling](https://docs.tracearr.com/sse-plugin/comparison).
 
 ## Install
 
 ### Jellyfin
+
+Requires Jellyfin 10.11 or newer.
 
 1. Open Jellyfin → **Dashboard → Plugins → Repositories**.
 2. Add a repository:
@@ -21,7 +29,7 @@ Manual install (if you don't want to add the repository): download `Tracearr.Sse
 
 ### Emby
 
-Emby has no equivalent of Jellyfin's user-pasteable plugin repository URL — install is manual.
+Requires Emby 4.9 or newer. No Emby Premiere needed. Emby has no equivalent of Jellyfin's user-pasteable plugin repository URL, so install is manual.
 
 1. Download `Tracearr.Sse.Emby_<version>.zip` from [Releases](https://github.com/Tracearr/Media-Server-SSE/releases).
 2. Extract `Emby.Plugin.Sse.dll` into Emby's `programdata/plugins/` directory.
@@ -45,12 +53,13 @@ curl -N -H 'X-Emby-Token: YOUR_API_KEY' \
   http://your-emby:8096/emby/sse/events
 ```
 
-(The exact Emby path is verified during release; see CHANGELOG for any path corrections.)
+The plugin answers immediately with a `hello` event carrying its version, so you know the connection reached it. Jellyfin also accepts the token as `X-Emby-Token`, `X-MediaBrowser-Token`, or an `api_key` query parameter. The query form is what makes browser `EventSource` work, at the cost of the token appearing in access logs.
 
 ## Events
 
 | Event | Fields | When |
 |---|---|---|
+| `hello` | version, server | Sent once on connect; `server` is `jellyfin` or `emby` |
 | `playing` | sessionId, itemId, userId, state, positionTicks | Playback started |
 | `progress` | sessionId, itemId, userId, state, positionTicks | Playback position update |
 | `paused` | sessionId, itemId, userId, state, positionTicks | Playback paused |
@@ -68,6 +77,9 @@ curl -N -H 'X-Emby-Token: YOUR_API_KEY' \
 ### Wire format
 
 ```
+event: hello
+data: {"version":"0.4.0.0","server":"jellyfin"}
+
 event: playing
 data: {"sessionId":"abc123","itemId":"def456","userId":"user1","state":"playing","positionTicks":0}
 
@@ -87,7 +99,7 @@ event: ping
 data: {}
 ```
 
-`sessionId` is the device session ID (matches what Jellyfin/Emby return from `/Sessions`), not the per-playback `PlaySessionId`. Events broadcast to all connected clients — there's no per-connection filtering. Null fields are omitted.
+`sessionId` is the device session ID (matches what Jellyfin/Emby return from `/Sessions`), not the per-playback `PlaySessionId`. Events broadcast to all connected clients; there's no per-connection filtering. Null fields are omitted.
 
 ### Behavior notes
 
@@ -135,9 +147,9 @@ dotnet test
 
 Three projects, two distribution shapes:
 
-- `MediaServer.Sse.Core` — platform-agnostic event model and broadcaster. Uses `System.Threading.Channels` for fan-out.
-- `Jellyfin.Plugin.Sse` — five `IEventConsumer<T>` implementations for playback/session events, a hosted service that subscribes directly to `ILibraryManager`'s `ItemAdded`/`ItemRemoved` events, and an ASP.NET Core controller for the SSE endpoint. Ships as `Jellyfin.Plugin.Sse.dll` + `MediaServer.Sse.Core.dll`.
-- `Emby.Plugin.Sse` — single `IServerEntryPoint` that subscribes to `ISessionManager` and `ILibraryManager` events + an `IService` + `IAsyncStreamWriter` endpoint. Ships as a single `Emby.Plugin.Sse.dll`; Core sources are inlined at compile time because Emby's plugin loader only resolves a single DLL per plugin.
+- `MediaServer.Sse.Core`: platform-agnostic event model and broadcaster. Uses `System.Threading.Channels` for fan-out.
+- `Jellyfin.Plugin.Sse`: five `IEventConsumer<T>` implementations for playback/session events, three hosted services (library events via `ILibraryManager`, scheduled task events, server stats sampling), and an ASP.NET Core controller for the SSE endpoint. Ships as `Jellyfin.Plugin.Sse.dll` + `MediaServer.Sse.Core.dll`.
+- `Emby.Plugin.Sse`: single `IServerEntryPoint` that subscribes to `ISessionManager` and `ILibraryManager` events + an `IService` + `IAsyncStreamWriter` endpoint. Ships as a single `Emby.Plugin.Sse.dll`; Core sources are inlined at compile time because Emby's plugin loader only resolves a single DLL per plugin.
 
 ## License
 
