@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-08-08
+
+### Changed
+
+- Emby dashboard thumbnail is the 16:9 catalog tile instead of the square Tracearr logo.
+- Catalog art replaced: a 1920x1080 tile shared by the Jellyfin catalog and the Emby thumb, and an Emby terminal preview showing the wire format. The old images were Tracearr app placeholders.
+- Both catalog manifests describe the full event set and carry per-version release notes; new releases pull them from this changelog.
+
 ## [0.4.0] - 2026-08-07
 
 ### Added
