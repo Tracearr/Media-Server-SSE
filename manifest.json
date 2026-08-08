@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/tile.png",
     "versions": [
       {
+        "version": "0.4.1.0",
+        "changelog": "- Emby dashboard thumbnail is the 16:9 catalog tile instead of the square Tracearr logo.\n- Catalog art replaced: a 1920x1080 tile shared by the Jellyfin catalog and the Emby thumb, and an Emby terminal preview showing the wire format. The old images were Tracearr app placeholders.\n- Both catalog manifests describe the full event set and carry per-version release notes; new releases pull them from this changelog.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.4.1/Tracearr.Sse.Jellyfin_0.4.1.zip",
+        "checksum": "23de9fc548ec170f3930026031413fc3",
+        "timestamp": "2026-08-08T20:35:01Z"
+      },
+      {
         "version": "0.4.0.0",
         "changelog": "Adds server.stats CPU/RAM samples every 6 seconds while a client is connected, and task.started, task.progress, and task.completed events from the scheduled task manager.",
         "targetAbi": "10.11.0.0",
