@@ -4,7 +4,7 @@ Jellyfin and Emby plugins that expose a Server-Sent Events endpoint for real-tim
 
 ## Why
 
-Neither Jellyfin nor Emby has a built-in way to subscribe to playback events over a persistent HTTP connection. The webhook plugins push to external URLs, which isn't what you want when your client wants to hold a stream open. This plugin gives you a standard SSE endpoint that fires events when playback starts, stops, pauses, progresses, when sessions connect or disconnect, or when items are added to or removed from a library.
+Neither Jellyfin nor Emby has a built-in way to subscribe to playback events over a persistent HTTP connection. The webhook plugins push to external URLs, which isn't what you want when your client wants to hold a stream open. This plugin gives you a standard SSE endpoint that fires events when playback starts, stops, pauses, progresses, when sessions connect or disconnect, when items are added to or removed from a library, when scheduled tasks run, and with server CPU/RAM utilization every 6 seconds.
 
 ## Install
 
@@ -59,6 +59,10 @@ curl -N -H 'X-Emby-Token: YOUR_API_KEY' \
 | `session.end` | sessionId, userId | Device session disconnected |
 | `library.item.added` | itemId, itemType, parentId | Item finished being added to a library |
 | `library.item.removed` | itemId, itemType, parentId | Item removed from a library |
+| `task.started` | taskId, taskName, taskCategory | Scheduled task began running |
+| `task.progress` | taskId, taskName, progress | Task progress (throttled to 1% or 2s per task) |
+| `task.completed` | taskId, taskName, state | Task finished; state is the completion status |
+| `server.stats` | at, hostCpuUtilization, processCpuUtilization, hostMemoryUtilization, processMemoryUtilization | CPU/RAM sample every 6 seconds while a client is connected |
 | `ping` | (empty) | Keepalive every 30 seconds |
 
 ### Wire format
@@ -73,6 +77,12 @@ data: {"sessionId":"abc123","itemId":"def456","userId":"user1","state":"stopped"
 event: library.item.added
 data: {"itemId":"def456","itemType":"Movie","parentId":"lib789"}
 
+event: task.progress
+data: {"taskId":"7738148ffcd07979c7ceb148e06b3aed","taskName":"Scan Media Library","progress":42.5}
+
+event: server.stats
+data: {"at":1786151199,"hostCpuUtilization":3.257,"processCpuUtilization":0.622,"hostMemoryUtilization":30.042,"processMemoryUtilization":0.548}
+
 event: ping
 data: {}
 ```
@@ -81,7 +91,8 @@ data: {}
 
 ### Behavior notes
 
-- Bounded channel per subscriber (capacity 100). If a client falls behind, events drop silently. Reconnect and poll `/Sessions` to catch up.
+- Bounded channel per subscriber (capacity 512). A client that falls behind is disconnected so it can reconnect and resync via `/Sessions`.
+- `server.stats` host values read `/proc` and are omitted on non-Linux hosts; inside a container `/proc` reports the host machine. Sampling runs every 6 seconds but only broadcasts while at least one client is connected.
 - Progress events pass through at whatever rate the media server reports them (typically every 5–10 seconds). No server-side throttling.
 - Theme music and local trailer playback events are filtered out.
 - Library events fire once per changed item, no batching. Theme media and virtual/placeholder items (e.g. missing episodes) are filtered out, same as playback events. `parentId` is the item's immediate parent (a season for an episode, a library folder for a top-level series or movie), not necessarily the library root.
