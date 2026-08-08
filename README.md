@@ -154,7 +154,3 @@ Three projects, two distribution shapes:
 ## License
 
 [GPL-3.0-or-later](LICENSE)
-
-## TODO
-
-- Replace placeholder icons in `assets/` with SSE-specific art (currently uses Tracearr web app icon as placeholder).

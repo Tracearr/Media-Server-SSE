@@ -48,9 +48,13 @@ def main(argv):
     jf_url = JF_URL_TEMPLATE.format(v=release_version)
     emby_url = EMBY_URL_TEMPLATE.format(v=release_version)
 
+    changelog = changelog_summary(release_version) or "See GitHub release notes."
+
     # Build both outputs in memory first; if either raises, no files are written
-    json_text = build_manifest_json(assembly_version, jf_md5, jf_url, timestamp)
-    xml_tree = build_emby_xml(assembly_version, emby_md5, emby_url, timestamp)
+    json_text = build_manifest_json(
+        assembly_version, jf_md5, jf_url, timestamp, changelog
+    )
+    xml_tree = build_emby_xml(assembly_version, emby_md5, emby_url, timestamp, changelog)
 
     Path("manifest.json").write_text(json_text)
     write_emby_xml(xml_tree, Path("emby-packages.xml"))
@@ -60,7 +64,25 @@ def main(argv):
     )
 
 
-def build_manifest_json(version, checksum, source_url, timestamp):
+def changelog_summary(release_version):
+    """Pull this release's section out of CHANGELOG.md, minus the ### headers."""
+    path = Path("CHANGELOG.md")
+    if not path.exists():
+        return None
+    capture = False
+    section = []
+    for line in path.read_text().splitlines():
+        if line.startswith(f"## [{release_version}]"):
+            capture = True
+            continue
+        if capture and line.startswith("## ["):
+            break
+        if capture and not line.startswith("### "):
+            section.append(line)
+    return "\n".join(section).strip() or None
+
+
+def build_manifest_json(version, checksum, source_url, timestamp, changelog):
     path = Path("manifest.json")
     data = json.loads(path.read_text())
     if not isinstance(data, list) or len(data) == 0:
@@ -69,7 +91,7 @@ def build_manifest_json(version, checksum, source_url, timestamp):
         sys.exit("manifest.json: data[0].versions key not found")
     new_entry = {
         "version": version,
-        "changelog": "See GitHub release notes.",
+        "changelog": changelog,
         "targetAbi": TARGET_ABI,
         "sourceUrl": source_url,
         "checksum": checksum,
@@ -79,7 +101,7 @@ def build_manifest_json(version, checksum, source_url, timestamp):
     return json.dumps(data, indent=2) + "\n"
 
 
-def build_emby_xml(version, checksum, source_url, timestamp):
+def build_emby_xml(version, checksum, source_url, timestamp, changelog):
     path = Path("emby-packages.xml")
     tree = ET.parse(path)
     root = tree.getroot()
@@ -91,7 +113,7 @@ def build_emby_xml(version, checksum, source_url, timestamp):
     fields = [
         ("versionStr", version),
         ("classification", "Release"),
-        ("description", "See GitHub release notes."),
+        ("description", changelog),
         ("sourceUrl", source_url),
         ("checksum", checksum),
         ("runtimes", "netstandard"),

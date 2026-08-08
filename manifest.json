@@ -2,15 +2,15 @@
   {
     "guid": "b4a6d7e2-8f3c-4a1e-9d5b-2c7f0e8a1b3d",
     "name": "Tracearr SSE",
-    "description": "Streams playback start, progress, pause, stop, session connect and disconnect, and library item added/removed events as Server-Sent Events, plus a hello event carrying the plugin version. Built for Tracearr. Works with any SSE client.",
-    "overview": "Real-time playback and session events over Server-Sent Events.",
+    "description": "Streams playback start, progress, pause, stop, session connect and disconnect, library item added and removed, scheduled task lifecycle, and server CPU/RAM stat events as Server-Sent Events, plus a hello event carrying the plugin version. Built for Tracearr. Works with any SSE client.",
+    "overview": "Real-time playback, session, library, task, and server stat events over Server-Sent Events.",
     "owner": "Connor Gallopo - Tracearr",
     "category": "General",
-    "imageUrl": "https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/logo.png",
+    "imageUrl": "https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/tile.png",
     "versions": [
       {
         "version": "0.4.0.0",
-        "changelog": "See GitHub release notes.",
+        "changelog": "Adds server.stats CPU/RAM samples every 6 seconds while a client is connected, and task.started, task.progress, and task.completed events from the scheduled task manager.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.4.0/Tracearr.Sse.Jellyfin_0.4.0.zip",
         "checksum": "53b71449489eec740505adc4582504fa",
@@ -18,7 +18,7 @@
       },
       {
         "version": "0.3.0.0",
-        "changelog": "See GitHub release notes.",
+        "changelog": "Adds library.item.added and library.item.removed events carrying itemId, itemType, and parentId.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.3.0/Tracearr.Sse.Jellyfin_0.3.0.zip",
         "checksum": "d8025c40be21de4aee6adf3bebd7d4f8",
@@ -26,7 +26,7 @@
       },
       {
         "version": "0.2.0.0",
-        "changelog": "See GitHub release notes.",
+        "changelog": "Adds the hello event on connect, disconnects subscribers whose buffer fills so they reconnect and resync, raises the per-subscriber buffer to 512, and makes release builds report their real version.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.2.0/Tracearr.Sse.Jellyfin_0.2.0.zip",
         "checksum": "bb552f71aca6b5d0390adca777073176",
@@ -34,7 +34,7 @@
       },
       {
         "version": "0.1.0.0",
-        "changelog": "See GitHub release notes.",
+        "changelog": "First release: playing, progress, paused, stopped, session.start, and session.end events plus a ping keepalive every 30 seconds.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.1.0/Tracearr.Sse.Jellyfin_0.1.0.zip",
         "checksum": "ffa576b25592a9f6a8310a8f456257fd",

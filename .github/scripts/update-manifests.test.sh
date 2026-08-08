@@ -108,6 +108,40 @@ echo "$EMBY_TS" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{
 JF_COUNT3=$(jq '.[0].versions | length' manifest.json)
 [ "$JF_COUNT3" = "3" ] || { echo "FAIL: jellyfin versions count after 3rd run = $JF_COUNT3, expected 3"; exit 1; }
 
+# Runs so far had no CHANGELOG.md — changelog must fall back to the default
+JF_CL_DEFAULT=$(jq -r '.[0].versions[0].changelog' manifest.json)
+[ "$JF_CL_DEFAULT" = "See GitHub release notes." ] || { echo "FAIL: changelog fallback = $JF_CL_DEFAULT"; exit 1; }
+
+# Fourth run: with a CHANGELOG.md section, the entry must carry its text
+cat > CHANGELOG.md <<'EOF'
+# Changelog
+
+## [Unreleased]
+
+## [0.4.0] - 2026-08-07
+
+### Added
+
+- New thing one.
+- New thing two.
+
+## [0.3.0] - 2026-08-04
+
+### Added
+
+- Old thing.
+EOF
+
+"$SCRIPT" 0.4.0 stu901 vwx234 2026-08-07T12:00:00Z
+
+JF_CL=$(jq -r '.[0].versions[0].changelog' manifest.json)
+[ "$JF_CL" = "- New thing one.
+- New thing two." ] || { echo "FAIL: jellyfin changelog from CHANGELOG.md wrong: $JF_CL"; exit 1; }
+
+EMBY_CL=$(emby_first_field description)
+[ "$EMBY_CL" = "- New thing one.
+- New thing two." ] || { echo "FAIL: emby description from CHANGELOG.md wrong: $EMBY_CL"; exit 1; }
+
 # Validate JSON and XML are still well-formed
 jq -e . manifest.json > /dev/null || { echo "FAIL: manifest.json invalid JSON"; exit 1; }
 python3 -c "import xml.etree.ElementTree as ET; ET.parse('emby-packages.xml')" || { echo "FAIL: emby-packages.xml invalid XML"; exit 1; }

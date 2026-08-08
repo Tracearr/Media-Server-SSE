@@ -4,8 +4,8 @@
     <name>Tracearr SSE</name>
     <guid>a3d8f1e6-2b7c-4e9a-8f5d-1c6b0a3e7f92</guid>
     <owner>Connor Gallopo - Tracearr</owner>
-    <description>Real-time playback and session events over Server-Sent Events.</description>
-    <overview>Streams playback start, progress, pause, stop, session connect and disconnect, and library item added/removed events as Server-Sent Events, plus a hello event carrying the plugin version. Built for Tracearr. Works with any SSE client.</overview>
+    <description>Real-time playback, session, library, task, and server stat events over Server-Sent Events.</description>
+    <overview>Streams playback start, progress, pause, stop, session connect and disconnect, library item added and removed, scheduled task lifecycle, and server CPU/RAM stat events as Server-Sent Events, plus a hello event carrying the plugin version. Built for Tracearr. Works with any SSE client.</overview>
     <category>General</category>
     <thumbImage>https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/tile.png</thumbImage>
     <previewImage>https://raw.githubusercontent.com/Tracearr/Media-Server-SSE/main/assets/preview.png</previewImage>
@@ -18,7 +18,7 @@
       <version>
         <versionStr>0.4.0.0</versionStr>
         <classification>Release</classification>
-        <description>See GitHub release notes.</description>
+        <description>Adds server.stats CPU/RAM samples every 6 seconds while a client is connected, and task.started, task.progress, and task.completed events from the scheduled task manager.</description>
         <sourceUrl>https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.4.0/Tracearr.Sse.Emby_0.4.0.zip</sourceUrl>
         <checksum>1a1fb1290a1e6d6c841517df3c3d93c4</checksum>
         <runtimes>netstandard</runtimes>
@@ -27,7 +27,7 @@
       <version>
         <versionStr>0.3.0.0</versionStr>
         <classification>Release</classification>
-        <description>See GitHub release notes.</description>
+        <description>Adds library.item.added and library.item.removed events carrying itemId, itemType, and parentId.</description>
         <sourceUrl>https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.3.0/Tracearr.Sse.Emby_0.3.0.zip</sourceUrl>
         <checksum>e30d7293408396efb00715e1589df095</checksum>
         <runtimes>netstandard</runtimes>
@@ -36,7 +36,7 @@
       <version>
         <versionStr>0.2.0.0</versionStr>
         <classification>Release</classification>
-        <description>See GitHub release notes.</description>
+        <description>Adds the hello event on connect, disconnects subscribers whose buffer fills so they reconnect and resync, raises the per-subscriber buffer to 512, and makes release builds report their real version.</description>
         <sourceUrl>https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.2.0/Tracearr.Sse.Emby_0.2.0.zip</sourceUrl>
         <checksum>6a4510a01465e8b8b5813b997f7cb37f</checksum>
         <runtimes>netstandard</runtimes>
@@ -45,7 +45,7 @@
       <version>
         <versionStr>0.1.0.0</versionStr>
         <classification>Release</classification>
-        <description>See GitHub release notes.</description>
+        <description>First release: playing, progress, paused, stopped, session.start, and session.end events plus a ping keepalive every 30 seconds.</description>
         <sourceUrl>https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.1.0/Tracearr.Sse.Emby_0.1.0.zip</sourceUrl>
         <checksum>303f0590659227d88697bc06aee2de55</checksum>
         <runtimes>netstandard</runtimes>
