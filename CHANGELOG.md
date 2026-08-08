@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-07
+
 ### Added
 
 - `server.stats` event broadcast every 6 seconds while at least one client is connected, carrying `at` (unix seconds), `hostCpuUtilization`, `processCpuUtilization`, `hostMemoryUtilization`, and `processMemoryUtilization`. Host values read `/proc` and are omitted off Linux; inside a container `/proc` reports the host, matching what Plex's statistics endpoints show. The 6-second cadence matches Plex's resolution so dashboards can chart all server types together.
