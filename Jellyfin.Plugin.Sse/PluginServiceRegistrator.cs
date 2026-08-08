@@ -23,5 +23,7 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddScoped<IEventConsumer<SessionEndedEventArgs>, SessionEndSseConsumer>();
 
         serviceCollection.AddHostedService<LibrarySseConsumer>();
+        serviceCollection.AddHostedService<TaskSseConsumer>();
+        serviceCollection.AddHostedService<ServerStatsSseService>();
     }
 }

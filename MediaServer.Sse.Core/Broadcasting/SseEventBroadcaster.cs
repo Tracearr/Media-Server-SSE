@@ -21,6 +21,8 @@ public class SseEventBroadcaster : ISseEventBroadcaster
         _pingTimer = new Timer(SendPing, null, pingIntervalMs, pingIntervalMs);
     }
 
+    public int SubscriberCount => _subscribers.Count;
+
     public (Guid Id, ChannelReader<SseEvent> Reader) Subscribe()
     {
         var id = Guid.NewGuid();

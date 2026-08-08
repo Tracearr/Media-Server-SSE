@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Added
+
+- `server.stats` event broadcast every 6 seconds while at least one client is connected, carrying `at` (unix seconds), `hostCpuUtilization`, `processCpuUtilization`, `hostMemoryUtilization`, and `processMemoryUtilization`. Host values read `/proc` and are omitted off Linux; inside a container `/proc` reports the host, matching what Plex's statistics endpoints show. The 6-second cadence matches Plex's resolution so dashboards can chart all server types together.
+- `task.started`, `task.progress`, and `task.completed` events from the server's scheduled task manager. Payloads carry `taskId`, `taskName`, and `taskCategory` on start, `progress` (0-100) during execution, and `state` (the completion status) on finish. Progress is throttled to one event per task per percent moved or per 2 seconds, whichever comes first.
+
 ## [0.3.0] - 2026-08-04
 
 ### Added

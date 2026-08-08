@@ -46,4 +46,40 @@ public class SseEvent
     [JsonPropertyName("server")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Server { get; set; }
+
+    [JsonPropertyName("taskId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TaskId { get; set; }
+
+    [JsonPropertyName("taskName")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TaskName { get; set; }
+
+    [JsonPropertyName("taskCategory")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TaskCategory { get; set; }
+
+    [JsonPropertyName("progress")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? Progress { get; set; }
+
+    [JsonPropertyName("at")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long? At { get; set; }
+
+    [JsonPropertyName("hostCpuUtilization")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? HostCpuUtilization { get; set; }
+
+    [JsonPropertyName("processCpuUtilization")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? ProcessCpuUtilization { get; set; }
+
+    [JsonPropertyName("hostMemoryUtilization")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? HostMemoryUtilization { get; set; }
+
+    [JsonPropertyName("processMemoryUtilization")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? ProcessMemoryUtilization { get; set; }
 }

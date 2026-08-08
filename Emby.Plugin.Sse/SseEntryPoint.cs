@@ -1,29 +1,47 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 using Emby.Plugin.Sse.Logging;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Controller.Session;
+using MediaBrowser.Model.Events;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.Tasks;
 using MediaServer.Sse.Core.Broadcasting;
 using MediaServer.Sse.Core.Models;
+using MediaServer.Sse.Core.Stats;
 
 namespace Emby.Plugin.Sse
 {
     public class SseEntryPoint : IServerEntryPoint
     {
+        // Matches the 6s resolution Plex's statistics endpoints report at
+        private const int StatsIntervalMs = 6_000;
+
         private readonly ISessionManager _sessionManager;
         private readonly ILibraryManager _libraryManager;
+        private readonly ITaskManager _taskManager;
         private readonly ILogger _logger;
+        private readonly ServerStatsSampler _sampler = new ServerStatsSampler();
+        private readonly TaskProgressThrottle _throttle = new TaskProgressThrottle();
+        private readonly HashSet<string> _progressHooked = new HashSet<string>();
+        private readonly object _progressHookLock = new object();
         private SseEventBroadcaster? _broadcaster;
+        private Timer? _statsTimer;
 
         public static ISseEventBroadcaster? Broadcaster { get; private set; }
 
-        public SseEntryPoint(ISessionManager sessionManager, ILibraryManager libraryManager, ILogManager logManager)
+        public SseEntryPoint(
+            ISessionManager sessionManager,
+            ILibraryManager libraryManager,
+            ITaskManager taskManager,
+            ILogManager logManager)
         {
             _sessionManager = sessionManager;
             _libraryManager = libraryManager;
+            _taskManager = taskManager;
             _logger = logManager.GetLogger(GetType().Name);
         }
 
@@ -40,6 +58,10 @@ namespace Emby.Plugin.Sse
             _sessionManager.SessionEnded += OnSessionEnded;
             _libraryManager.ItemAdded += OnItemAdded;
             _libraryManager.ItemRemoved += OnItemRemoved;
+            _taskManager.TaskExecuting += OnTaskExecuting;
+            _taskManager.TaskCompleted += OnTaskCompleted;
+
+            _statsTimer = new Timer(OnStatsTick, null, StatsIntervalMs, StatsIntervalMs);
 
             _logger.Info("SSE plugin started");
         }
@@ -53,11 +75,120 @@ namespace Emby.Plugin.Sse
             _sessionManager.SessionEnded -= OnSessionEnded;
             _libraryManager.ItemAdded -= OnItemAdded;
             _libraryManager.ItemRemoved -= OnItemRemoved;
+            _taskManager.TaskExecuting -= OnTaskExecuting;
+            _taskManager.TaskCompleted -= OnTaskCompleted;
+
+            _statsTimer?.Dispose();
+            _statsTimer = null;
 
             _broadcaster?.Dispose();
             Broadcaster = null;
 
             _logger.Info("SSE plugin stopped");
+        }
+
+        private void OnTaskExecuting(object sender, GenericEventArgs<IScheduledTaskWorker> e)
+        {
+            try
+            {
+                var worker = e.Argument;
+
+                // Workers are long-lived, one per task; hook progress once each
+                var hook = false;
+                lock (_progressHookLock)
+                {
+                    hook = _progressHooked.Add(worker.Id);
+                }
+
+                if (hook)
+                {
+                    worker.TaskProgress += (_, progressArgs) => OnTaskProgress(worker, progressArgs.Argument);
+                }
+
+                _broadcaster?.Broadcast(new SseEvent
+                {
+                    EventType = "task.started",
+                    TaskId = worker.Id,
+                    TaskName = worker.Name,
+                    TaskCategory = worker.Category,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Failed to broadcast task.started", ex);
+            }
+        }
+
+        private void OnTaskProgress(IScheduledTaskWorker worker, double progress)
+        {
+            try
+            {
+                if (!_throttle.ShouldEmit(worker.Id, progress, DateTime.UtcNow))
+                {
+                    return;
+                }
+
+                _broadcaster?.Broadcast(new SseEvent
+                {
+                    EventType = "task.progress",
+                    TaskId = worker.Id,
+                    TaskName = worker.Name,
+                    Progress = progress,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Failed to broadcast task.progress", ex);
+            }
+        }
+
+        private void OnTaskCompleted(object sender, TaskCompletionEventArgs e)
+        {
+            try
+            {
+                var worker = e.Task;
+                _throttle.Clear(worker.Id);
+
+                _broadcaster?.Broadcast(new SseEvent
+                {
+                    EventType = "task.completed",
+                    TaskId = worker.Id,
+                    TaskName = worker.Name,
+                    State = e.Result.Status.ToString(),
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Failed to broadcast task.completed", ex);
+            }
+        }
+
+        private void OnStatsTick(object state)
+        {
+            try
+            {
+                // Sample every tick so CPU deltas stay accurate, broadcast
+                // only when someone is listening
+                var sample = _sampler.Sample();
+                if (sample == null || _broadcaster == null || _broadcaster.SubscriberCount == 0)
+                {
+                    return;
+                }
+
+                _broadcaster.Broadcast(new SseEvent
+                {
+                    EventType = "server.stats",
+                    At = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    HostCpuUtilization = sample.HostCpuUtilization,
+                    ProcessCpuUtilization = sample.ProcessCpuUtilization,
+                    HostMemoryUtilization = sample.HostMemoryUtilization,
+                    ProcessMemoryUtilization = sample.ProcessMemoryUtilization,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Failed to broadcast server.stats", ex);
+            }
         }
 
         private void OnPlaybackStart(object sender, PlaybackProgressEventArgs e)

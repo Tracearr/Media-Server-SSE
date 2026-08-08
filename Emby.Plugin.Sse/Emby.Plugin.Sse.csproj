@@ -21,6 +21,8 @@
     <Compile Include="..\MediaServer.Sse.Core\Broadcasting\SseEventBroadcaster.cs" />
     <Compile Include="..\MediaServer.Sse.Core\Broadcasting\SseHello.cs" />
     <Compile Include="..\MediaServer.Sse.Core\Models\SseEvent.cs" />
+    <Compile Include="..\MediaServer.Sse.Core\Stats\ServerStatsSampler.cs" />
+    <Compile Include="..\MediaServer.Sse.Core\Stats\TaskProgressThrottle.cs" />
   </ItemGroup>
 
   <ItemGroup>
