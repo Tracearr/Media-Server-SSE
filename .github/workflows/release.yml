@@ -22,7 +22,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.312
+          dotnet-version: 10.0.400
 
       - name: Derive version
         id: version

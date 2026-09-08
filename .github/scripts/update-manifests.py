@@ -24,7 +24,7 @@ EMBY_URL_TEMPLATE = (
     "https://github.com/Tracearr/Media-Server-SSE/releases/download/"
     "v{v}/Tracearr.Sse.Emby_{v}.zip"
 )
-TARGET_ABI = "10.11.0.0"
+TARGET_ABI = "12.0.0.0"
 
 
 def main(argv):

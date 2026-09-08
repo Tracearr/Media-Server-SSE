@@ -16,7 +16,7 @@ The [plugin docs](https://docs.tracearr.com/sse-plugin) cover [installation](htt
 
 ### Jellyfin
 
-Requires Jellyfin 10.11 or newer.
+Requires Jellyfin 12.0 or newer. Jellyfin 12 moved the server to .NET 10 and changed plugin interfaces, so builds for 10.11 do not load on it. The last release for 10.11 is 0.4.1.
 
 1. Open Jellyfin → **Dashboard → Plugins → Repositories**.
 2. Add a repository:
@@ -125,7 +125,7 @@ gh attestation verify Tracearr.Sse.Jellyfin_0.1.0.zip --owner Tracearr
 
 ## Build from source
 
-Requires [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0).
+Requires [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 ```bash
 git clone https://github.com/Tracearr/Media-Server-SSE.git

@@ -71,6 +71,9 @@ JF_CS=$(jq -r '.[0].versions[0].checksum' manifest.json)
 JF_SRC=$(jq -r '.[0].versions[0].sourceUrl' manifest.json)
 [ "$JF_SRC" = "https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.1.0/Tracearr.Sse.Jellyfin_0.1.0.zip" ] || { echo "FAIL: jellyfin sourceUrl wrong: $JF_SRC"; exit 1; }
 
+JF_ABI=$(jq -r '.[0].versions[0].targetAbi' manifest.json)
+[ "$JF_ABI" = "12.0.0.0" ] || { echo "FAIL: jellyfin targetAbi = $JF_ABI, expected 12.0.0.0"; exit 1; }
+
 # Assert emby-packages.xml has one version, versionStr=0.1.0.0, checksum=def456
 EMBY_COUNT=$(emby_count)
 [ "$EMBY_COUNT" = "1" ] || { echo "FAIL: emby versions count = $EMBY_COUNT, expected 1"; exit 1; }
