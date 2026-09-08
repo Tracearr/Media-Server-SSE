@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-08
+
+### Changed
+
+- Jellyfin builds now target .NET 10 against the Jellyfin 12.0 plugin ABI. Jellyfin 12 moved the server to .NET 10 and changed several plugin interfaces, so a 10.11 build does not load on it. Catalog entries carry `targetAbi` 12.0.0.0, which hides them from 10.11 servers; 0.4.1 stays the last release for 10.11.
+- Emby is unaffected. `Emby.Plugin.Sse` is still netstandard2.0 and still targets Emby 4.9+.
+
 ## [0.4.1] - 2026-08-08
 
 ### Changed
