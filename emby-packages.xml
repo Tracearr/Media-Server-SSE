@@ -16,6 +16,16 @@
     <targetSystem>Server</targetSystem>
     <versions>
       <version>
+        <versionStr>0.5.0.0</versionStr>
+        <classification>Release</classification>
+        <description>- Jellyfin builds now target .NET 10 against the Jellyfin 12.0 plugin ABI. Jellyfin 12 moved the server to .NET 10 and changed several plugin interfaces, so a 10.11 build does not load on it. Catalog entries carry `targetAbi` 12.0.0.0, which hides them from 10.11 servers; 0.4.1 stays the last release for 10.11.
+- Emby is unaffected. `Emby.Plugin.Sse` is still netstandard2.0 and still targets Emby 4.9+.</description>
+        <sourceUrl>https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.5.0/Tracearr.Sse.Emby_0.5.0.zip</sourceUrl>
+        <checksum>7ed1fcd410a4a4e1880a258ccbdb8f37</checksum>
+        <runtimes>netstandard</runtimes>
+        <timestamp>2026-09-08T14:48:31Z</timestamp>
+      </version>
+      <version>
         <versionStr>0.4.1.0</versionStr>
         <classification>Release</classification>
         <description>- Emby dashboard thumbnail is the 16:9 catalog tile instead of the square Tracearr logo.
