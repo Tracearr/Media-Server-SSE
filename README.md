@@ -29,13 +29,17 @@ Manual install (if you don't want to add the repository): download `Tracearr.Sse
 
 ### Emby
 
-Requires Emby 4.9 or newer. No Emby Premiere needed. Emby has no equivalent of Jellyfin's user-pasteable plugin repository URL, so install is manual.
+Requires Emby 4.9 or newer. No Emby Premiere needed.
 
-1. Download `Tracearr.Sse.Emby_<version>.zip` from [Releases](https://github.com/Tracearr/Media-Server-SSE/releases).
-2. Extract `Emby.Plugin.Sse.dll` into Emby's `programdata/plugins/` directory.
+1. Open the Emby dashboard → **Plugins → Catalog**.
+2. Find **Tracearr SSE** under **Notifications**, install.
 3. Restart Emby.
 
-Updates: repeat the same steps with the new release zip.
+![Tracearr SSE in the Notifications row of the Emby plugin catalog](assets/emby-catalog.png)
+
+Updates come through the catalog like any other Emby plugin.
+
+Manual install: download `Tracearr.Sse.Emby_<version>.zip` from [Releases](https://github.com/Tracearr/Media-Server-SSE/releases), extract `Emby.Plugin.Sse.dll` into Emby's `programdata/plugins/` directory, restart. If you installed this way before the catalog listing and a catalog update fails with `Access to the path '.../plugins/Emby.Plugin.Sse.dll' is denied`, the DLL is owned by a different user than the one Emby runs as (common when it was copied in as root). Delete the DLL, restart Emby, and install from the catalog.
 
 ## Usage
 
