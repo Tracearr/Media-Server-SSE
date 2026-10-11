@@ -16,6 +16,15 @@
     <targetSystem>Server</targetSystem>
     <versions>
       <version>
+        <versionStr>0.5.1.0</versionStr>
+        <classification>Release</classification>
+        <description>- The events endpoint now requires an administrator or an API key on both Jellyfin and Emby.</description>
+        <sourceUrl>https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.5.1/Tracearr.Sse.Emby_0.5.1.zip</sourceUrl>
+        <checksum>c6c27d78315e5de3cbada54db636b2c4</checksum>
+        <runtimes>netstandard</runtimes>
+        <timestamp>2026-10-11T14:33:36Z</timestamp>
+      </version>
+      <version>
         <versionStr>0.5.0.0</versionStr>
         <classification>Release</classification>
         <description>- Jellyfin builds now target .NET 10 against the Jellyfin 12.0 plugin ABI. Jellyfin 12 moved the server to .NET 10 and changed several plugin interfaces, so a 10.11 build does not load on it. Catalog entries carry `targetAbi` 12.0.0.0, which hides them from 10.11 servers; 0.4.1 stays the last release for 10.11.
