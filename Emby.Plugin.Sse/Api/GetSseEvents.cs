@@ -4,7 +4,7 @@ using MediaBrowser.Model.Services;
 namespace Emby.Plugin.Sse.Api
 {
     [Route("/sse/events", "GET")]
-    [Authenticated]
+    [Authenticated(Roles = "Admin")]
     public class GetSseEvents : IReturn<object>
     {
     }

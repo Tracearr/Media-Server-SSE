@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Jellyfin.Plugin.Sse;
+using MediaBrowser.Common.Api;
 using MediaServer.Sse.Core.Broadcasting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Sse.Api;
 
-[Authorize]
+[Authorize(Policy = Policies.RequiresElevation)]
 [ApiController]
 [Route("api/sse")]
 public class SseController(ISseEventBroadcaster broadcaster, ILogger<SseController> logger) : ControllerBase
