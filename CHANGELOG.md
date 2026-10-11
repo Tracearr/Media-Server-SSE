@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-11
+
 ### Security
 
 - The events endpoint now requires an administrator or an API key on both Jellyfin and Emby.
