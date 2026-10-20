@@ -23,6 +23,7 @@ public class SseEntryPointTests : IDisposable
     private readonly Mock<ILibraryManager> _libraryManager;
     private readonly Mock<ITaskManager> _taskManager;
     private readonly Mock<IActivityManager> _activityManager;
+    private readonly Mock<IUserManager> _userManager;
     private readonly Mock<ILogManager> _logManager;
     private readonly Mock<ILogger> _logger;
 
@@ -32,6 +33,7 @@ public class SseEntryPointTests : IDisposable
         _libraryManager = new Mock<ILibraryManager>();
         _taskManager = new Mock<ITaskManager>();
         _activityManager = new Mock<IActivityManager>();
+        _userManager = new Mock<IUserManager>();
         _logManager = new Mock<ILogManager>();
         _logger = new Mock<ILogger>();
         _logManager.Setup(m => m.GetLogger(It.IsAny<string>())).Returns(_logger.Object);
@@ -43,6 +45,7 @@ public class SseEntryPointTests : IDisposable
             _libraryManager.Object,
             _taskManager.Object,
             _activityManager.Object,
+            _userManager.Object,
             _logManager.Object);
 
     public void Dispose()
@@ -383,6 +386,42 @@ public class SseEntryPointTests : IDisposable
         Assert.Equal("alice is Downloading Heat", evt.ItemName);
         Assert.Equal("Emby Web", evt.App);
         Assert.Equal("Firefox", evt.Device);
+        _userManager.Verify(m => m.GetUserById(It.IsAny<long>()), Times.Never);
+
+        entryPoint.Dispose();
+    }
+
+    [Fact]
+    public void ActivityEntryCreated_NumericUserId_ResolvesToUserGuid()
+    {
+        var entryPoint = CreateEntryPoint();
+        entryPoint.Run();
+        var reader = Subscribe();
+        var userId = Guid.NewGuid();
+        _userManager.Setup(m => m.GetUserById(17L)).Returns(new User { Id = userId, InternalId = 17 });
+
+        RaiseActivity(new ActivityLogEntry { Type = "UserDownloadingContent", UserId = "17" });
+
+        var evt = ReadSingle(reader);
+        Assert.NotNull(evt);
+        Assert.Equal(userId.ToString("N"), evt!.UserId);
+
+        entryPoint.Dispose();
+    }
+
+    [Fact]
+    public void ActivityEntryCreated_UnknownNumericUserId_OmitsUserId()
+    {
+        var entryPoint = CreateEntryPoint();
+        entryPoint.Run();
+        var reader = Subscribe();
+
+        RaiseActivity(new ActivityLogEntry { Type = "UserDownloadingContent", UserId = "404" });
+
+        var evt = ReadSingle(reader);
+        Assert.NotNull(evt);
+        Assert.Null(evt!.UserId);
+        _logger.Verify(l => l.Debug(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
 
         entryPoint.Dispose();
     }
