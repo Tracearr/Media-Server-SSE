@@ -82,4 +82,56 @@ public class SseEvent
     [JsonPropertyName("processMemoryUtilization")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? ProcessMemoryUtilization { get; set; }
+
+    [JsonPropertyName("itemName")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ItemName { get; set; }
+
+    [JsonPropertyName("app")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? App { get; set; }
+
+    [JsonPropertyName("device")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Device { get; set; }
+
+    [JsonPropertyName("deviceId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DeviceId { get; set; }
+
+    [JsonPropertyName("phase")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Phase { get; set; }
+
+    [JsonPropertyName("bitrate")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Bitrate { get; set; }
+
+    [JsonPropertyName("width")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Width { get; set; }
+
+    [JsonPropertyName("height")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Height { get; set; }
+
+    [JsonPropertyName("videoCodec")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? VideoCodec { get; set; }
+
+    [JsonPropertyName("audioCodec")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? AudioCodec { get; set; }
+
+    [JsonPropertyName("container")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Container { get; set; }
+
+    [JsonPropertyName("bytesTranscoded")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long? BytesTranscoded { get; set; }
+
+    [JsonPropertyName("completionPercentage")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? CompletionPercentage { get; set; }
 }

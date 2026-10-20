@@ -5,7 +5,9 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Session;
+using MediaBrowser.Model.Activity;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Events;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Tasks;
 using MediaServer.Sse.Core.Broadcasting;
@@ -20,6 +22,7 @@ public class SseEntryPointTests : IDisposable
     private readonly Mock<ISessionManager> _sessionManager;
     private readonly Mock<ILibraryManager> _libraryManager;
     private readonly Mock<ITaskManager> _taskManager;
+    private readonly Mock<IActivityManager> _activityManager;
     private readonly Mock<ILogManager> _logManager;
     private readonly Mock<ILogger> _logger;
 
@@ -28,6 +31,7 @@ public class SseEntryPointTests : IDisposable
         _sessionManager = new Mock<ISessionManager>();
         _libraryManager = new Mock<ILibraryManager>();
         _taskManager = new Mock<ITaskManager>();
+        _activityManager = new Mock<IActivityManager>();
         _logManager = new Mock<ILogManager>();
         _logger = new Mock<ILogger>();
         _logManager.Setup(m => m.GetLogger(It.IsAny<string>())).Returns(_logger.Object);
@@ -38,6 +42,7 @@ public class SseEntryPointTests : IDisposable
             _sessionManager.Object,
             _libraryManager.Object,
             _taskManager.Object,
+            _activityManager.Object,
             _logManager.Object);
 
     public void Dispose()
@@ -339,6 +344,76 @@ public class SseEntryPointTests : IDisposable
 
         entryPoint.Dispose();
     }
+
+    [Fact]
+    public void ActivityEntryCreated_OtherType_BroadcastsNothing()
+    {
+        var entryPoint = CreateEntryPoint();
+        entryPoint.Run();
+        var reader = Subscribe();
+
+        RaiseActivity(new ActivityLogEntry { Type = "VideoPlayback", Name = "alice is playing Heat" });
+
+        Assert.Null(ReadSingle(reader));
+
+        entryPoint.Dispose();
+    }
+
+    [Fact]
+    public void ActivityEntryCreated_Download_BroadcastsLibraryItemDownloaded()
+    {
+        var entryPoint = CreateEntryPoint();
+        entryPoint.Run();
+        var reader = Subscribe();
+        var userId = Guid.NewGuid();
+
+        RaiseActivity(new ActivityLogEntry
+        {
+            Type = "UserDownloadingContent",
+            Name = "alice is Downloading Heat",
+            ShortOverview = "From Emby Home with Emby Web on Firefox",
+            UserId = userId.ToString(),
+        });
+
+        var evt = ReadSingle(reader);
+        Assert.NotNull(evt);
+        Assert.Equal("library.item.downloaded", evt!.EventType);
+        Assert.Equal(userId.ToString("N"), evt.UserId);
+        Assert.Null(evt.ItemId);
+        Assert.Equal("alice is Downloading Heat", evt.ItemName);
+        Assert.Equal("Emby Web", evt.App);
+        Assert.Equal("Firefox", evt.Device);
+
+        entryPoint.Dispose();
+    }
+
+    [Fact]
+    public void ActivityEntryCreated_ServerNameContainsWith_ParsesAppAndDevice()
+    {
+        var entryPoint = CreateEntryPoint();
+        entryPoint.Run();
+        var reader = Subscribe();
+
+        RaiseActivity(new ActivityLogEntry
+        {
+            Type = "UserDownloadingContent",
+            Name = "alice is Downloading Heat",
+            ShortOverview = "From Home with Pool with Emby Web on Firefox",
+        });
+
+        var evt = ReadSingle(reader);
+        Assert.NotNull(evt);
+        Assert.Equal("Emby Web", evt!.App);
+        Assert.Equal("Firefox", evt.Device);
+
+        entryPoint.Dispose();
+    }
+
+    private void RaiseActivity(ActivityLogEntry entry) =>
+        _activityManager.Raise(
+            m => m.EntryCreated += null,
+            _activityManager.Object,
+            new GenericEventArgs<ActivityLogEntry>(entry));
 
     private static ItemChangeEventArgs CreateItemChangeArgs(long internalId, long parentInternalId)
     {

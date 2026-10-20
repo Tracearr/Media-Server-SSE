@@ -8,7 +8,7 @@ Jellyfin and Emby plugins that add a Server-Sent Events (SSE) endpoint for real-
 
 Neither Jellyfin nor Emby lets an outside app subscribe to playback events over a persistent HTTP connection. The webhook plugins push to external URLs, so your client has to run a reachable HTTP server of its own to listen. On Emby, webhooks also require a Premiere subscription. Jellyfin's WebSocket withholds session data from API-key clients ([jellyfin#13479](https://github.com/jellyfin/jellyfin/issues/13479)). That leaves polling `/Sessions`, which finds a session only after the fact.
 
-This plugin gives you a standard SSE endpoint on the server itself. Events fire when playback starts, stops, pauses, progresses, when sessions connect or disconnect, when items are added to or removed from a library, when scheduled tasks run, and with server CPU/RAM utilization every 6 seconds. Pause is a first-class event, library items arrive one event per item, and no subscription is involved.
+This plugin gives you a standard SSE endpoint on the server itself. Events fire when playback starts, stops, pauses, progresses, when sessions connect or disconnect, when items are added to or removed from a library, when a user downloads an item, when scheduled tasks run, and with server CPU/RAM utilization every 6 seconds. Pause is a first-class event, library items arrive one event per item, and no subscription is involved.
 
 The [plugin docs](https://docs.tracearr.com/sse-plugin) cover [installation](https://docs.tracearr.com/sse-plugin/installation), the full [event reference](https://docs.tracearr.com/sse-plugin/events), [client examples](https://docs.tracearr.com/sse-plugin/consuming) in curl, JavaScript, and Python, [troubleshooting](https://docs.tracearr.com/sse-plugin/troubleshooting), and an honest [comparison with the webhook plugin, the WebSocket, and polling](https://docs.tracearr.com/sse-plugin/comparison).
 
@@ -72,6 +72,8 @@ The plugin answers immediately with a `hello` event carrying its version, so you
 | `session.end` | sessionId, userId | Device session disconnected |
 | `library.item.added` | itemId, itemType, parentId | Item finished being added to a library |
 | `library.item.removed` | itemId, itemType, parentId | Item removed from a library |
+| `library.item.downloaded` | userId, itemId, itemName, app, device | A user downloaded an item; `itemId` is absent on Emby |
+| `download.transcoded` | phase, userId, deviceId, itemId, bitrate, width, height, videoCodec, audioCodec, container, bytesTranscoded, completionPercentage | Jellyfin only. A device pulled a transcode without playing it for 20 seconds (`phase: started`), then stopped (`phase: ended`) |
 | `task.started` | taskId, taskName, taskCategory | Scheduled task began running |
 | `task.progress` | taskId, taskName, progress | Task progress (throttled to 1% or 2s per task) |
 | `task.completed` | taskId, taskName, state | Task finished; state is the completion status |
@@ -114,6 +116,8 @@ data: {}
 - Library events fire once per changed item, no batching. Theme media and virtual/placeholder items (e.g. missing episodes) are filtered out, same as playback events. `parentId` is the item's immediate parent (a season for an episode, a library folder for a top-level series or movie), not necessarily the library root.
 - Emby also raises events for container folders (a new movie's directory arrives as `itemType: "Folder"` alongside the movie), and deleting a directory fires a removed event for the folder only, not each child. Jellyfin reports each media item individually in both directions. Don't assume added/removed pairs match one-to-one on Emby; treat removals as a cue to re-query.
 - Library event ids match what each server's REST API reports: the 32-character GUID form on Jellyfin, the numeric internal id on Emby. Emby playback events keep the GUID `itemId` they have always had.
+- `library.item.downloaded` comes from the server's activity log entry for `GET /Items/{id}/Download`. `itemName` is that entry's name as the server wrote it ("alice is downloading Heat"); `app` and `device` are parsed from its overview and omitted when the format doesn't match.
+- `download.transcoded` covers Jellyfin clients that download at reduced quality: they pull a transcode through the stream endpoint, which writes no activity entry. Sessions are checked every 5 seconds. `itemId` and `bytesTranscoded` come from Jellyfin's internal transcoding job list and are omitted if a future Jellyfin release changes it.
 
 ## Verifying releases
 
@@ -152,8 +156,8 @@ dotnet test
 Three projects, two distribution shapes:
 
 - `MediaServer.Sse.Core`: platform-agnostic event model and broadcaster. Uses `System.Threading.Channels` for fan-out.
-- `Jellyfin.Plugin.Sse`: five `IEventConsumer<T>` implementations for playback/session events, three hosted services (library events via `ILibraryManager`, scheduled task events, server stats sampling), and an ASP.NET Core controller for the SSE endpoint. Ships as `Jellyfin.Plugin.Sse.dll` + `MediaServer.Sse.Core.dll`.
-- `Emby.Plugin.Sse`: single `IServerEntryPoint` that subscribes to `ISessionManager` and `ILibraryManager` events + an `IService` + `IAsyncStreamWriter` endpoint. Ships as a single `Emby.Plugin.Sse.dll`; Core sources are inlined at compile time because Emby's plugin loader only resolves a single DLL per plugin.
+- `Jellyfin.Plugin.Sse`: five `IEventConsumer<T>` implementations for playback/session events, five hosted services (library events via `ILibraryManager`, download events via `IActivityManager`, converted downloads from session polling, scheduled task events, server stats sampling), and an ASP.NET Core controller for the SSE endpoint. Ships as `Jellyfin.Plugin.Sse.dll` + `MediaServer.Sse.Core.dll`.
+- `Emby.Plugin.Sse`: single `IServerEntryPoint` that subscribes to `ISessionManager`, `ILibraryManager`, `IActivityManager`, and `ITaskManager` events + an `IService` + `IAsyncStreamWriter` endpoint. Ships as a single `Emby.Plugin.Sse.dll`; Core sources are inlined at compile time because Emby's plugin loader only resolves a single DLL per plugin.
 
 ## License
 
