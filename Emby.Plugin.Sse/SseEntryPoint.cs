@@ -30,6 +30,7 @@ namespace Emby.Plugin.Sse
         private readonly ILibraryManager _libraryManager;
         private readonly ITaskManager _taskManager;
         private readonly IActivityManager _activityManager;
+        private readonly IUserManager _userManager;
         private readonly ILogger _logger;
         private readonly ServerStatsSampler _sampler = new ServerStatsSampler();
         private readonly TaskProgressThrottle _throttle = new TaskProgressThrottle();
@@ -45,12 +46,14 @@ namespace Emby.Plugin.Sse
             ILibraryManager libraryManager,
             ITaskManager taskManager,
             IActivityManager activityManager,
+            IUserManager userManager,
             ILogManager logManager)
         {
             _sessionManager = sessionManager;
             _libraryManager = libraryManager;
             _taskManager = taskManager;
             _activityManager = activityManager;
+            _userManager = userManager;
             _logger = logManager.GetLogger(GetType().Name);
         }
 
@@ -298,7 +301,7 @@ namespace Emby.Plugin.Sse
                 _broadcaster?.Broadcast(new SseEvent
                 {
                     EventType = "library.item.downloaded",
-                    UserId = Guid.TryParse(entry.UserId, out var userId) ? userId.ToString("N") : entry.UserId,
+                    UserId = ResolveUserId(entry.UserId),
                     ItemId = entry.ItemId,
                     ItemName = entry.Name,
                     App = overview.Success ? overview.Groups["app"].Value : null,
@@ -309,6 +312,21 @@ namespace Emby.Plugin.Sse
             {
                 _logger.ErrorException("Failed to broadcast library.item.downloaded", ex);
             }
+        }
+
+        // Emby's activity entries carry the user's numeric internal id; playback events use the Guid
+        private string? ResolveUserId(string? userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return null;
+            if (Guid.TryParse(userId, out var guid))
+                return guid.ToString("N");
+            if (long.TryParse(userId, NumberStyles.None, CultureInfo.InvariantCulture, out var internalId)
+                && _userManager.GetUserById(internalId) is { } user)
+                return user.Id.ToString("N");
+
+            _logger.Debug("No user found for activity entry user id {0}", userId);
+            return null;
         }
 
         private static SseEvent? TryCreateLibraryEvent(ItemChangeEventArgs args, string eventType)
