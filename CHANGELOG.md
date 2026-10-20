@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-20
+
+### Added
+
+- `library.item.downloaded` event on Jellyfin and Emby when a user downloads an item, from the server's activity log. Payload carries `userId`, `itemId` (absent on Emby, whose entry has none), `itemName` (the activity entry's name), and `app` and `device` parsed from the entry's overview.
+- `download.transcoded` event on Jellyfin for clients that download at reduced quality through the stream endpoint, which logs no activity. A device session that transcodes without reporting playback for 20 seconds emits `phase: "started"`, and `phase: "ended"` when the transcode goes away. Payload carries `userId`, `deviceId`, `itemId`, `bitrate`, `width`, `height`, `videoCodec`, `audioCodec`, `container`, `bytesTranscoded`, and `completionPercentage`. `itemId` and `bytesTranscoded` are read from Jellyfin's internal transcoding job list and are omitted if that read fails.
+
 ## [0.5.1] - 2026-10-11
 
 ### Security

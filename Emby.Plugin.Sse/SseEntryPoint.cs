@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Emby.Plugin.Sse.Logging;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Controller.Session;
+using MediaBrowser.Model.Activity;
 using MediaBrowser.Model.Events;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Tasks;
@@ -20,9 +22,14 @@ namespace Emby.Plugin.Sse
         // Matches the 6s resolution Plex's statistics endpoints report at
         private const int StatsIntervalMs = 6_000;
 
+        // Emby's ShortOverview for a download: "From <server> with <app> on <device>"
+        private static readonly Regex AppDevicePattern =
+            new Regex(@"^From .+ with (?<app>.+?) on (?<device>.+)$", RegexOptions.Compiled);
+
         private readonly ISessionManager _sessionManager;
         private readonly ILibraryManager _libraryManager;
         private readonly ITaskManager _taskManager;
+        private readonly IActivityManager _activityManager;
         private readonly ILogger _logger;
         private readonly ServerStatsSampler _sampler = new ServerStatsSampler();
         private readonly TaskProgressThrottle _throttle = new TaskProgressThrottle();
@@ -37,11 +44,13 @@ namespace Emby.Plugin.Sse
             ISessionManager sessionManager,
             ILibraryManager libraryManager,
             ITaskManager taskManager,
+            IActivityManager activityManager,
             ILogManager logManager)
         {
             _sessionManager = sessionManager;
             _libraryManager = libraryManager;
             _taskManager = taskManager;
+            _activityManager = activityManager;
             _logger = logManager.GetLogger(GetType().Name);
         }
 
@@ -58,6 +67,7 @@ namespace Emby.Plugin.Sse
             _sessionManager.SessionEnded += OnSessionEnded;
             _libraryManager.ItemAdded += OnItemAdded;
             _libraryManager.ItemRemoved += OnItemRemoved;
+            _activityManager.EntryCreated += OnActivityEntryCreated;
             _taskManager.TaskExecuting += OnTaskExecuting;
             _taskManager.TaskCompleted += OnTaskCompleted;
 
@@ -75,6 +85,7 @@ namespace Emby.Plugin.Sse
             _sessionManager.SessionEnded -= OnSessionEnded;
             _libraryManager.ItemAdded -= OnItemAdded;
             _libraryManager.ItemRemoved -= OnItemRemoved;
+            _activityManager.EntryCreated -= OnActivityEntryCreated;
             _taskManager.TaskExecuting -= OnTaskExecuting;
             _taskManager.TaskCompleted -= OnTaskCompleted;
 
@@ -272,6 +283,31 @@ namespace Emby.Plugin.Sse
             catch (Exception ex)
             {
                 _logger.ErrorException($"Failed to emit {eventType} event", ex);
+            }
+        }
+
+        private void OnActivityEntryCreated(object sender, GenericEventArgs<ActivityLogEntry> e)
+        {
+            try
+            {
+                var entry = e.Argument;
+                if (entry.Type != "UserDownloadingContent")
+                    return;
+
+                var overview = AppDevicePattern.Match(entry.ShortOverview ?? string.Empty);
+                _broadcaster?.Broadcast(new SseEvent
+                {
+                    EventType = "library.item.downloaded",
+                    UserId = Guid.TryParse(entry.UserId, out var userId) ? userId.ToString("N") : entry.UserId,
+                    ItemId = entry.ItemId,
+                    ItemName = entry.Name,
+                    App = overview.Success ? overview.Groups["app"].Value : null,
+                    Device = overview.Success ? overview.Groups["device"].Value : null,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Failed to broadcast library.item.downloaded", ex);
             }
         }
 
