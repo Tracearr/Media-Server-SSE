@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Fixed
+
+- Emby plugin failed to start on Emby's macOS builds with `Could not load file or assembly 'System.Threading.Channels, Version=8.0.0.0'`, and `/emby/sse/events` returned 500. Those builds run on .NET 6 and bundle Channels 6.0; the plugin now references 6.0 ([#5](https://github.com/Tracearr/Media-Server-SSE/issues/5)).
+
 ## [0.6.0] - 2026-10-20
 
 ### Added
