@@ -16,6 +16,15 @@
     <targetSystem>Server</targetSystem>
     <versions>
       <version>
+        <versionStr>0.6.1.0</versionStr>
+        <classification>Release</classification>
+        <description>- Emby plugin failed to start on Emby's macOS builds with `Could not load file or assembly 'System.Threading.Channels, Version=8.0.0.0'`, and `/emby/sse/events` returned 500. Those builds run on .NET 6 and bundle Channels 6.0; the plugin now references 6.0 ([#5](https://github.com/Tracearr/Media-Server-SSE/issues/5)).</description>
+        <sourceUrl>https://github.com/Tracearr/Media-Server-SSE/releases/download/v0.6.1/Tracearr.Sse.Emby_0.6.1.zip</sourceUrl>
+        <checksum>a3950cd094ff02d8bd4bc80e93973973</checksum>
+        <runtimes>netstandard</runtimes>
+        <timestamp>2026-11-02T17:07:22Z</timestamp>
+      </version>
+      <version>
         <versionStr>0.6.0.0</versionStr>
         <classification>Release</classification>
         <description>- `library.item.downloaded` event on Jellyfin and Emby when a user downloads an item, from the server's activity log. Payload carries `userId`, `itemId` (absent on Emby, whose entry has none), `itemName` (the activity entry's name), and `app` and `device` parsed from the entry's overview.
